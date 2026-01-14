@@ -48,6 +48,47 @@ service cloud.firestore {
       allow delete: if isOwner(userId) || isAdmin();
     }
 
+    // Reglas para la colección de planes
+    match /plans/{planId} {
+      // Helper para verificar si es organizador del plan
+      function isPlanOrganizer() {
+        return resource.data.organizadorId == request.auth.uid;
+      }
+
+      // Validar datos del plan
+      function isValidPlan() {
+        let data = request.resource.data;
+        return data.titulo.size() > 0 &&
+               data.titulo.size() <= 100 &&
+               data.capacidadMaxima > 0 &&
+               data.capacidadMaxima <= 100 &&
+               data.capacidadActual >= 0 &&
+               data.capacidadActual <= data.capacidadMaxima;
+      }
+
+      // Cualquier usuario autenticado puede leer planes
+      allow read: if isSignedIn();
+
+      // Solo usuarios autenticados pueden crear planes
+      allow create: if isSignedIn() &&
+                       request.resource.data.organizadorId == request.auth.uid &&
+                       isValidPlan() &&
+                       isValidDocumentSize();
+
+      // Actualizaciones: organizador o participantes (para join/leave)
+      allow update: if isSignedIn() && (
+        // Organizador puede actualizar todo excepto cambiar organizador
+        (isPlanOrganizer() &&
+         request.resource.data.organizadorId == resource.data.organizadorId) ||
+        // Cualquier usuario puede unirse/salir (modificar arrays de participantes)
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['participantesIds', 'listaEsperaIds', 'capacidadActual']))
+      ) && isValidDocumentSize();
+
+      // Solo organizador o admin pueden eliminar
+      allow delete: if isPlanOrganizer() || isAdmin();
+    }
+
     // Reglas por defecto: denegar todo lo demás
     match /{document=**} {
       allow read, write: if false;

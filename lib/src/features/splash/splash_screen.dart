@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,12 +13,10 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  late AnimationController _particleController;
-  List<Particle> _particles = [];
 
   @override
   void initState() {
@@ -27,24 +24,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
     );
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _particles = List.generate(30, (_) => Particle(MediaQuery.of(context).size));
-      _particleController = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 10),
-      )..repeat();
-       _animationController.forward();
-    });
+    _animationController.forward();
 
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
@@ -62,88 +53,81 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    if (mounted) {
-      _particleController.dispose();
-    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          if (_particles.isNotEmpty) {
-            for (var particle in _particles) {
-              particle.update();
-            }
-          }
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFFF6B9D), Color(0xFFC06BFF)],
-              ),
-            ),
-            child: Stack(
-              children: [
-                if (_particles.isNotEmpty)
-                  CustomPaint(
-                    painter: ParticlePainter(_particles),
-                    child: Container(),
-                  ),
-                child!,
-              ],
-            ),
-          );
-        },
-        child: Center(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF8F0F8), // Rosa muy claro arriba
+              Color(0xFFF5E6F5), // Rosa lavanda
+              Color(0xFFEDE4F0), // Lavanda claro abajo
+            ],
+          ),
+        ),
+        child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: ScaleTransition(
               scale: _scaleAnimation,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.hub, // Icon representing connection/network
-                    color: Colors.white,
-                    size: 60,
-                    shadows: [
-                      Shadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 5))
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'PlanIt',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w900, // Poppins Black
-                      fontSize: 48,
-                      color: Colors.white,
-                      shadows: [
-                        const Shadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 5))
+                  const Spacer(flex: 2),
+                  // Logo
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE07A5F).withAlpha(60),
+                          offset: const Offset(0, 8),
+                          blurRadius: 20,
+                        ),
                       ],
                     ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
+                  // Nombre de la app
+                  Text(
+                    'TribuLat',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 32,
+                      color: const Color(0xFF2D3436),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(flex: 2),
+                  // Slogan
                   Text(
                     'Conecta. Descubre. Vive.',
                     style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.white.withAlpha(204),
+                      fontSize: 14,
+                      color: const Color(0xFF636E72),
+                      letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.5,
-                    ),
-                  ),
+                  const SizedBox(height: 24),
+                  // Loading indicator con gradiente
+                  const _GradientCircularLoader(),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
@@ -154,48 +138,68 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 }
 
-class Particle {
-  late Offset position;
-  late double size;
-  late Color color;
-  late Offset speed;
-  final Size boundary;
+/// Indicador de carga circular con gradiente púrpura/rosa
+class _GradientCircularLoader extends StatefulWidget {
+  const _GradientCircularLoader();
 
-  Particle(this.boundary) {
-    reset();
-  }
-
-  void reset() {
-    final random = Random();
-    position = Offset(random.nextDouble() * boundary.width, random.nextDouble() * boundary.height);
-    size = random.nextDouble() * 2.5 + 0.5;
-    color = Colors.white.withAlpha((255 * (random.nextDouble() * 0.3 + 0.1)).round());
-    speed = Offset(random.nextDouble() * 0.4 - 0.2, random.nextDouble() * 0.4 - 0.2);
-  }
-
-  void update() {
-    position += speed;
-    if (position.dx < 0 || position.dx > boundary.width || position.dy < 0 || position.dy > boundary.height) {
-      reset();
-      position = Offset(Random().nextDouble() * boundary.width, boundary.height);
-    }
-  }
+  @override
+  State<_GradientCircularLoader> createState() => _GradientCircularLoaderState();
 }
 
-class ParticlePainter extends CustomPainter {
-  final List<Particle> particles;
-
-  ParticlePainter(this.particles);
+class _GradientCircularLoaderState extends State<_GradientCircularLoader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    for (var particle in particles) {
-      paint.color = particle.color;
-      canvas.drawCircle(particle.position, particle.size, paint);
-    }
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _controller.value * 2 * 3.14159,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: SweepGradient(
+                colors: [
+                  const Color(0xFF9B59B6).withAlpha(0),
+                  const Color(0xFF9B59B6),
+                  const Color(0xFFE91E8C),
+                  const Color(0xFFE91E8C).withAlpha(0),
+                ],
+                stops: const [0.0, 0.3, 0.7, 1.0],
+              ),
+            ),
+            child: Center(
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFF5E6F5), // Mismo color del fondo
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

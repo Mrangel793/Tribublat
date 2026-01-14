@@ -35,6 +35,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               email: _emailController.text,
               password: _passwordController.text,
             );
+        if (!mounted) return;
+        context.go('/');
       } on AuthException catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -316,7 +318,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget _buildSocialButtons() {
     return Center(
       child: OutlinedButton(
-        onPressed: () => ref.read(authRepositoryProvider).signInWithGoogle(),
+        onPressed: () async {
+          try {
+            await ref.read(authRepositoryProvider).signInWithGoogle();
+            if (!mounted) return;
+            context.go('/');
+          } on AuthException catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+            );
+          }
+        },
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           side: const BorderSide(color: Color(0xFFE0E0E0), width: 1.5),

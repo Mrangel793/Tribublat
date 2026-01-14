@@ -22,6 +22,8 @@ mixin _$ProfileStep3State {
   String? get errorMessage => throw _privateConstructorUsedError;
   bool get isSuccess => throw _privateConstructorUsedError;
 
+  /// Create a copy of ProfileStep3State
+  /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   $ProfileStep3StateCopyWith<ProfileStep3State> get copyWith =>
       throw _privateConstructorUsedError;
@@ -47,9 +49,13 @@ class _$ProfileStep3StateCopyWithImpl<$Res, $Val extends ProfileStep3State>
     implements $ProfileStep3StateCopyWith<$Res> {
   _$ProfileStep3StateCopyWithImpl(this._value, this._then);
 
+  // ignore: unused_field
   final $Val _value;
+  // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ProfileStep3State
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -60,13 +66,24 @@ class _$ProfileStep3StateCopyWithImpl<$Res, $Val extends ProfileStep3State>
   }) {
     return _then(
       _value.copyWith(
-        selectedLevel:
-            freezed == selectedLevel ? _value.selectedLevel : selectedLevel as EnergyLevel?,
-        isLoading: null == isLoading ? _value.isLoading : isLoading as bool,
-        errorMessage:
-            freezed == errorMessage ? _value.errorMessage : errorMessage as String?,
-        isSuccess: null == isSuccess ? _value.isSuccess : isSuccess as bool,
-      ) as $Val,
+            selectedLevel: freezed == selectedLevel
+                ? _value.selectedLevel
+                : selectedLevel // ignore: cast_nullable_to_non_nullable
+                      as EnergyLevel?,
+            isLoading: null == isLoading
+                ? _value.isLoading
+                : isLoading // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            errorMessage: freezed == errorMessage
+                ? _value.errorMessage
+                : errorMessage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isSuccess: null == isSuccess
+                ? _value.isSuccess
+                : isSuccess // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
     );
   }
 }
@@ -97,6 +114,8 @@ class __$$ProfileStep3StateImplCopyWithImpl<$Res>
     $Res Function(_$ProfileStep3StateImpl) _then,
   ) : super(_value, _then);
 
+  /// Create a copy of ProfileStep3State
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -107,12 +126,22 @@ class __$$ProfileStep3StateImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$ProfileStep3StateImpl(
-        selectedLevel:
-            freezed == selectedLevel ? _value.selectedLevel : selectedLevel as EnergyLevel?,
-        isLoading: null == isLoading ? _value.isLoading : isLoading as bool,
-        errorMessage:
-            freezed == errorMessage ? _value.errorMessage : errorMessage as String?,
-        isSuccess: null == isSuccess ? _value.isSuccess : isSuccess as bool,
+        selectedLevel: freezed == selectedLevel
+            ? _value.selectedLevel
+            : selectedLevel // ignore: cast_nullable_to_non_nullable
+                  as EnergyLevel?,
+        isLoading: null == isLoading
+            ? _value.isLoading
+            : isLoading // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        errorMessage: freezed == errorMessage
+            ? _value.errorMessage
+            : errorMessage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isSuccess: null == isSuccess
+            ? _value.isSuccess
+            : isSuccess // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -161,13 +190,15 @@ class _$ProfileStep3StateImpl implements _ProfileStep3State {
 
   @override
   int get hashCode => Object.hash(
-        runtimeType,
-        selectedLevel,
-        isLoading,
-        errorMessage,
-        isSuccess,
-      );
+    runtimeType,
+    selectedLevel,
+    isLoading,
+    errorMessage,
+    isSuccess,
+  );
 
+  /// Create a copy of ProfileStep3State
+  /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
@@ -194,6 +225,9 @@ abstract class _ProfileStep3State implements ProfileStep3State {
   String? get errorMessage;
   @override
   bool get isSuccess;
+
+  /// Create a copy of ProfileStep3State
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ProfileStep3StateImplCopyWith<_$ProfileStep3StateImpl> get copyWith =>

@@ -22,6 +22,8 @@ mixin _$ProfileStep2State {
   String? get errorMessage => throw _privateConstructorUsedError;
   bool get isSuccess => throw _privateConstructorUsedError;
 
+  /// Create a copy of ProfileStep2State
+  /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   $ProfileStep2StateCopyWith<ProfileStep2State> get copyWith =>
       throw _privateConstructorUsedError;
@@ -47,9 +49,13 @@ class _$ProfileStep2StateCopyWithImpl<$Res, $Val extends ProfileStep2State>
     implements $ProfileStep2StateCopyWith<$Res> {
   _$ProfileStep2StateCopyWithImpl(this._value, this._then);
 
+  // ignore: unused_field
   final $Val _value;
+  // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ProfileStep2State
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -60,14 +66,24 @@ class _$ProfileStep2StateCopyWithImpl<$Res, $Val extends ProfileStep2State>
   }) {
     return _then(
       _value.copyWith(
-        selectedInterests: null == selectedInterests
-            ? _value.selectedInterests
-            : selectedInterests as List<String>,
-        isLoading: null == isLoading ? _value.isLoading : isLoading as bool,
-        errorMessage:
-            freezed == errorMessage ? _value.errorMessage : errorMessage as String?,
-        isSuccess: null == isSuccess ? _value.isSuccess : isSuccess as bool,
-      ) as $Val,
+            selectedInterests: null == selectedInterests
+                ? _value.selectedInterests
+                : selectedInterests // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            isLoading: null == isLoading
+                ? _value.isLoading
+                : isLoading // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            errorMessage: freezed == errorMessage
+                ? _value.errorMessage
+                : errorMessage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isSuccess: null == isSuccess
+                ? _value.isSuccess
+                : isSuccess // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
     );
   }
 }
@@ -98,6 +114,8 @@ class __$$ProfileStep2StateImplCopyWithImpl<$Res>
     $Res Function(_$ProfileStep2StateImpl) _then,
   ) : super(_value, _then);
 
+  /// Create a copy of ProfileStep2State
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -110,11 +128,20 @@ class __$$ProfileStep2StateImplCopyWithImpl<$Res>
       _$ProfileStep2StateImpl(
         selectedInterests: null == selectedInterests
             ? _value._selectedInterests
-            : selectedInterests as List<String>,
-        isLoading: null == isLoading ? _value.isLoading : isLoading as bool,
-        errorMessage:
-            freezed == errorMessage ? _value.errorMessage : errorMessage as String?,
-        isSuccess: null == isSuccess ? _value.isSuccess : isSuccess as bool,
+            : selectedInterests // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        isLoading: null == isLoading
+            ? _value.isLoading
+            : isLoading // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        errorMessage: freezed == errorMessage
+            ? _value.errorMessage
+            : errorMessage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isSuccess: null == isSuccess
+            ? _value.isSuccess
+            : isSuccess // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -136,6 +163,7 @@ class _$ProfileStep2StateImpl implements _ProfileStep2State {
   List<String> get selectedInterests {
     if (_selectedInterests is EqualUnmodifiableListView)
       return _selectedInterests;
+    // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_selectedInterests);
   }
 
@@ -158,8 +186,10 @@ class _$ProfileStep2StateImpl implements _ProfileStep2State {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ProfileStep2StateImpl &&
-            const DeepCollectionEquality()
-                .equals(other._selectedInterests, _selectedInterests) &&
+            const DeepCollectionEquality().equals(
+              other._selectedInterests,
+              _selectedInterests,
+            ) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.errorMessage, errorMessage) ||
@@ -170,13 +200,15 @@ class _$ProfileStep2StateImpl implements _ProfileStep2State {
 
   @override
   int get hashCode => Object.hash(
-        runtimeType,
-        const DeepCollectionEquality().hash(_selectedInterests),
-        isLoading,
-        errorMessage,
-        isSuccess,
-      );
+    runtimeType,
+    const DeepCollectionEquality().hash(_selectedInterests),
+    isLoading,
+    errorMessage,
+    isSuccess,
+  );
 
+  /// Create a copy of ProfileStep2State
+  /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
@@ -203,6 +235,9 @@ abstract class _ProfileStep2State implements ProfileStep2State {
   String? get errorMessage;
   @override
   bool get isSuccess;
+
+  /// Create a copy of ProfileStep2State
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ProfileStep2StateImplCopyWith<_$ProfileStep2StateImpl> get copyWith =>

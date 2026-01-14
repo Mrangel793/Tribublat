@@ -80,6 +80,9 @@ class _$ProfileStep1StateCopyWithImpl<$Res, $Val extends ProfileStep1State>
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
+
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -98,6 +101,9 @@ class __$$InitialImplCopyWithImpl<$Res>
     _$InitialImpl _value,
     $Res Function(_$InitialImpl) _then,
   ) : super(_value, _then);
+
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -214,6 +220,9 @@ class __$$LoadingImplCopyWithImpl<$Res>
     _$LoadingImpl _value,
     $Res Function(_$LoadingImpl) _then,
   ) : super(_value, _then);
+
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -330,6 +339,9 @@ class __$$SuccessImplCopyWithImpl<$Res>
     _$SuccessImpl _value,
     $Res Function(_$SuccessImpl) _then,
   ) : super(_value, _then);
+
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -449,6 +461,8 @@ class __$$ErrorImplCopyWithImpl<$Res>
     $Res Function(_$ErrorImpl) _then,
   ) : super(_value, _then);
 
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({Object? message = null}) {
@@ -456,7 +470,8 @@ class __$$ErrorImplCopyWithImpl<$Res>
       _$ErrorImpl(
         null == message
             ? _value.message
-            : message as String,
+            : message // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -486,6 +501,8 @@ class _$ErrorImpl implements _Error {
   @override
   int get hashCode => Object.hash(runtimeType, message);
 
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
@@ -571,6 +588,9 @@ abstract class _Error implements ProfileStep1State {
   const factory _Error(final String message) = _$ErrorImpl;
 
   String get message;
+
+  /// Create a copy of ProfileStep1State
+  /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ErrorImplCopyWith<_$ErrorImpl> get copyWith =>
       throw _privateConstructorUsedError;
