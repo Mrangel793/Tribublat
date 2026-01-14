@@ -1,18 +1,56 @@
-rules_version='2'
-
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'admin';
+    }
+
+    // Validar tamaño del documento (máximo 1MB por limitación de Firestore)
+    function isValidDocumentSize() {
+      return request.resource.size() < 1048576; // 1MB en bytes
+    }
+
+    // Reglas para la colección de usuarios
+    match /users/{userId} {
+      // Cualquier usuario autenticado puede leer perfiles públicos
+      allow read: if isSignedIn();
+
+      // Solo el dueño puede crear su propio perfil
+      allow create: if isSignedIn() &&
+                       isOwner(userId) &&
+                       request.resource.data.id == userId &&
+                       request.resource.data.email == request.auth.token.email &&
+                       isValidDocumentSize();
+
+      // Solo el dueño puede actualizar su propio perfil
+      // No puede cambiar: id, email, rol, reputacion, verificado
+      allow update: if isSignedIn() &&
+                       isOwner(userId) &&
+                       request.resource.data.id == resource.data.id &&
+                       request.resource.data.email == resource.data.email &&
+                       request.resource.data.rol == resource.data.rol &&
+                       request.resource.data.reputacion == resource.data.reputacion &&
+                       request.resource.data.verificado == resource.data.verificado &&
+                       isValidDocumentSize();
+
+      // Solo el dueño o admin pueden eliminar
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Reglas por defecto: denegar todo lo demás
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 12, 23);
+      allow read, write: if false;
     }
   }
 }

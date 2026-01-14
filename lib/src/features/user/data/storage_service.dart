@@ -1,127 +1,116 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Servicio para manejar la subida y gestión de archivos en Firebase Storage
+/// Servicio para manejar la conversión de imágenes a Base64 para Firestore
+/// NOTA: Las imágenes se comprimen agresivamente para no exceder el límite de Firestore (1MB)
 class StorageService {
-  final FirebaseStorage _storage;
-  final Uuid _uuid = const Uuid();
+  StorageService();
 
-  StorageService(this._storage);
-
-  /// Sube una foto de perfil a Firebase Storage
-  /// Comprime la imagen antes de subir (max 1MB, 1024x1024px)
-  /// Returns: URL de descarga de la imagen
+  /// Convierte una foto de perfil a Base64 para guardar en Firestore
+  /// Comprime agresivamente la imagen (max ~200KB, 512x512px)
+  /// Returns: String Base64 de la imagen
   Future<String> uploadProfilePhoto(File imageFile, String userId) async {
     try {
-      // Comprimir imagen antes de subir
-      final compressedFile = await _compressImage(imageFile);
+      // Comprimir imagen agresivamente
+      final compressedBytes = await _compressImageToBytes(imageFile);
 
-      // Generar nombre único para la imagen
-      final fileName = 'photo_${_uuid.v4()}.jpg';
-      final path = 'users/$userId/profile/$fileName';
+      // Validar tamaño (máximo ~300KB en Base64)
+      final estimatedSize = (compressedBytes.length * 1.37).toInt(); // Base64 aumenta ~37%
+      if (estimatedSize > 300000) {
+        throw StorageException(
+          'La imagen es demasiado grande después de comprimir. Tamaño: ${(estimatedSize / 1024).toStringAsFixed(1)}KB',
+        );
+      }
 
-      // Subir archivo
-      final ref = _storage.ref().child(path);
-      final uploadTask = await ref.putFile(
-        compressedFile,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
+      // Convertir a Base64
+      final base64String = base64Encode(compressedBytes);
 
-      // Obtener URL de descarga
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-
-      return downloadUrl;
+      return base64String;
     } catch (e) {
       throw StorageException(
-        'Error al subir la foto de perfil: ${e.toString()}',
+        'Error al procesar la foto de perfil: ${e.toString()}',
       );
     }
   }
 
-  /// Elimina una foto de perfil del Storage
-  /// [photoUrl] debe ser una URL completa de Firebase Storage
-  Future<void> deleteProfilePhoto(String photoUrl) async {
-    try {
-      // Extraer el path de la URL
-      final ref = _storage.refFromURL(photoUrl);
-      await ref.delete();
-    } catch (e) {
-      // No lanzar error si la foto no existe
-      // Esto puede pasar si se intenta borrar una foto que ya fue eliminada
-      print('Warning: No se pudo eliminar la foto: ${e.toString()}');
-    }
+  /// Elimina una foto de perfil (Base64 se elimina actualizando Firestore)
+  /// Este método ya no hace nada porque las imágenes Base64 se eliminan
+  /// directamente actualizando el documento en Firestore
+  Future<void> deleteProfilePhoto(String base64Image) async {
+    // No se requiere ninguna acción aquí
+    // La eliminación se maneja actualizando el campo en Firestore
   }
 
-  /// Sube múltiples fotos adicionales al perfil
-  /// Returns: Lista de URLs de descarga
+  /// Convierte múltiples fotos adicionales a Base64
+  /// Returns: Lista de strings Base64
   Future<List<String>> uploadAdditionalPhotos(
     List<File> images,
     String userId,
   ) async {
-    final urls = <String>[];
+    final base64Images = <String>[];
 
     for (final image in images) {
       try {
         // Comprimir imagen
-        final compressedFile = await _compressImage(image);
+        final compressedBytes = await _compressImageToBytes(image);
 
-        // Generar nombre único
-        final fileName = 'additional_${_uuid.v4()}.jpg';
-        final path = 'users/$userId/profile/$fileName';
+        // Validar tamaño
+        final estimatedSize = (compressedBytes.length * 1.37).toInt();
+        if (estimatedSize > 300000) {
+          print('Warning: Imagen adicional demasiado grande, omitiendo...');
+          continue;
+        }
 
-        // Subir archivo
-        final ref = _storage.ref().child(path);
-        final uploadTask = await ref.putFile(
-          compressedFile,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
-
-        // Obtener URL
-        final downloadUrl = await uploadTask.ref.getDownloadURL();
-        urls.add(downloadUrl);
+        // Convertir a Base64
+        final base64String = base64Encode(compressedBytes);
+        base64Images.add(base64String);
       } catch (e) {
-        print('Error al subir foto adicional: ${e.toString()}');
+        print('Error al procesar foto adicional: ${e.toString()}');
         // Continuar con las demás fotos
       }
     }
 
-    return urls;
+    return base64Images;
   }
 
-  /// Comprime una imagen para reducir su tamaño
-  /// Target: max 1MB, dimensiones 1024x1024px
-  Future<File> _compressImage(File imageFile) async {
+  /// Comprime una imagen agresivamente a bytes
+  /// Target: ~150-200KB, dimensiones 512x512px, quality 65
+  /// Para que en Base64 no exceda ~300KB
+  Future<List<int>> _compressImageToBytes(File imageFile) async {
     try {
-      final filePath = imageFile.absolute.path;
-      final lastIndex = filePath.lastIndexOf(RegExp(r'\.jp'));
-      final outPath = '${filePath.substring(0, lastIndex)}_compressed.jpg';
-
-      final result = await FlutterImageCompress.compressAndGetFile(
+      final result = await FlutterImageCompress.compressWithFile(
         imageFile.absolute.path,
-        outPath,
-        quality: 85,
-        minWidth: 1024,
-        minHeight: 1024,
+        quality: 65,
+        minWidth: 512,
+        minHeight: 512,
+        format: CompressFormat.jpeg,
       );
 
-      if (result == null) {
+      if (result == null || result.isEmpty) {
         throw StorageException('No se pudo comprimir la imagen');
       }
 
-      return File(result.path);
-    } catch (e) {
-      // Si falla la compresión, usar la imagen original
-      print('Warning: No se pudo comprimir la imagen, usando original: ${e.toString()}');
-      return imageFile;
-    }
-  }
+      // Si aún es muy grande, comprimir más
+      if (result.length > 220000) {
+        final secondPass = await FlutterImageCompress.compressWithFile(
+          imageFile.absolute.path,
+          quality: 50,
+          minWidth: 512,
+          minHeight: 512,
+          format: CompressFormat.jpeg,
+        );
 
-  /// Obtiene la referencia a la carpeta de perfil del usuario
-  Reference getUserProfileRef(String userId) {
-    return _storage.ref().child('users/$userId/profile');
+        if (secondPass != null && secondPass.isNotEmpty) {
+          return secondPass;
+        }
+      }
+
+      return result;
+    } catch (e) {
+      throw StorageException('Error al comprimir la imagen: ${e.toString()}');
+    }
   }
 }
 
@@ -135,12 +124,7 @@ class StorageException implements Exception {
   String toString() => message;
 }
 
-/// Provider del FirebaseStorage
-final firebaseStorageProvider = Provider<FirebaseStorage>((ref) {
-  return FirebaseStorage.instance;
-});
-
 /// Provider del StorageService
 final storageServiceProvider = Provider<StorageService>((ref) {
-  return StorageService(ref.watch(firebaseStorageProvider));
+  return StorageService();
 });
