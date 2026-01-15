@@ -20,6 +20,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscureText = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -30,20 +32,117 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
       try {
         await ref.read(authRepositoryProvider).signInWithEmail(
               email: _emailController.text,
               password: _passwordController.text,
             );
         if (!mounted) return;
-        context.go('/');
+        _showSuccessDialog();
       } on AuthException catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message), backgroundColor: Colors.red),
         );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    try {
+      await ref.read(authRepositoryProvider).signInWithGoogle();
+      if (!mounted) return;
+      _showSuccessDialog();
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4ECDC4).withAlpha(26),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Color(0xFF4ECDC4),
+                  size: 45,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Inicio exitoso',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF2D3436),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Bienvenido a TribuLat',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: const Color(0xFF636E72),
+                ),
+              ),
+              const SizedBox(height: 24),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/');
+                },
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  height: 48,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF9B59B6), Color(0xFF8E44AD)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Continuar',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -102,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            '¡Bienvenido de vuelta!',
+            'Bienvenido de vuelta!',
             style: GoogleFonts.poppins(
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -111,7 +210,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Inicia sesión para continuar',
+            'Inicia sesion para continuar',
             style: GoogleFonts.inter(
               fontSize: 14,
               color: const Color(0xFF636E72),
@@ -144,14 +243,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           children: [
             _buildTextFormField(
               controller: _emailController,
-              label: 'Correo electrónico',
+              label: 'Correo electronico',
               hint: 'ejemplo@tribu.lat',
               icon: Icons.mail_outline,
             ),
             const SizedBox(height: 16),
             _buildTextFormField(
               controller: _passwordController,
-              label: 'Contraseña',
+              label: 'Contrasena',
               hint: '••••••••••',
               icon: Icons.lock_outline,
               obscureText: _obscureText,
@@ -200,7 +299,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: const Color(0xFFF8F9FA),
-             border: OutlineInputBorder(
+            border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
             ),
@@ -238,7 +337,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Mantener sesión',
+              'Mantener sesion',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: const Color(0xFF636E72),
@@ -254,7 +353,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: Text(
-            '¿Olvidaste?',
+            'Olvidaste?',
             style: GoogleFonts.inter(
               fontSize: 13,
               color: const Color(0xFF9B59B6),
@@ -268,35 +367,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Widget _buildLoginButton() {
     return InkWell(
-      onTap: _submit,
+      onTap: _isLoading ? null : _submit,
       borderRadius: BorderRadius.circular(30),
       child: Container(
         height: 54,
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF9B59B6), Color(0xFF8E44AD)],
+          gradient: LinearGradient(
+            colors: _isLoading
+                ? [Colors.grey.shade400, Colors.grey.shade500]
+                : [const Color(0xFF9B59B6), const Color(0xFF8E44AD)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF9B59B6).withAlpha(100),
-              offset: const Offset(0, 6),
-              blurRadius: 12,
-            ),
-          ],
+          boxShadow: _isLoading
+              ? []
+              : [
+                  BoxShadow(
+                    color: const Color(0xFF9B59B6).withAlpha(100),
+                    offset: const Offset(0, 6),
+                    blurRadius: 12,
+                  ),
+                ],
         ),
         child: Center(
-          child: Text(
-            'Iniciar Sesión',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Text(
+                  'Iniciar Sesion',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
         ),
       ),
     );
@@ -308,7 +420,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         const Expanded(child: Divider(color: Color(0xFFE0E0E0))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text('O continúa con', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF636E72))),
+          child: Text('O continua con', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF636E72))),
         ),
         const Expanded(child: Divider(color: Color(0xFFE0E0E0))),
       ],
@@ -318,47 +430,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget _buildSocialButtons() {
     return Center(
       child: OutlinedButton(
-        onPressed: () async {
-          try {
-            await ref.read(authRepositoryProvider).signInWithGoogle();
-            if (!mounted) return;
-            context.go('/');
-          } on AuthException catch (e) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(e.message), backgroundColor: Colors.red),
-            );
-          }
-        },
+        onPressed: _isGoogleLoading ? null : _signInWithGoogle,
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1.5),
+          side: BorderSide(
+            color: _isGoogleLoading ? Colors.grey.shade300 : const Color(0xFFE0E0E0),
+            width: 1.5,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network(
-              'https://www.google.com/favicon.ico',
-              height: 24,
-              width: 24,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.g_mobiledata,
-                size: 28,
-                color: Color(0xFF4285F4),
+        child: _isGoogleLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9B59B6)),
+                ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.network(
+                    'https://www.google.com/favicon.ico',
+                    height: 24,
+                    width: 24,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.g_mobiledata,
+                      size: 28,
+                      color: Color(0xFF4285F4),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Continuar con Google',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF2D3436),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Continuar con Google',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF2D3436),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -369,9 +482,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       text: TextSpan(
         style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF636E72)),
         children: [
-          const TextSpan(text: '¿No tienes cuenta?  '),
+          const TextSpan(text: 'No tienes cuenta?  '),
           TextSpan(
-            text: 'Regístrate',
+            text: 'Registrate',
             style: GoogleFonts.poppins(
               color: const Color(0xFF9B59B6),
               fontWeight: FontWeight.w600,
