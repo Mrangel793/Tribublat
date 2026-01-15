@@ -57,13 +57,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   }
 
   void _onCreatePlan() {
-    // TODO: Navegar a crear plan
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Crear plan - Proximamente'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    context.push('/create-plan');
   }
 
   void _onMenuTap() {

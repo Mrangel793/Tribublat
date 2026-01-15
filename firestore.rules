@@ -55,35 +55,21 @@ service cloud.firestore {
         return resource.data.organizadorId == request.auth.uid;
       }
 
-      // Validar datos del plan
-      function isValidPlan() {
-        let data = request.resource.data;
-        return data.titulo.size() > 0 &&
-               data.titulo.size() <= 100 &&
-               data.capacidadMaxima > 0 &&
-               data.capacidadMaxima <= 100 &&
-               data.capacidadActual >= 0 &&
-               data.capacidadActual <= data.capacidadMaxima;
-      }
-
       // Cualquier usuario autenticado puede leer planes
       allow read: if isSignedIn();
 
       // Solo usuarios autenticados pueden crear planes
       allow create: if isSignedIn() &&
-                       request.resource.data.organizadorId == request.auth.uid &&
-                       isValidPlan() &&
-                       isValidDocumentSize();
+                       request.resource.data.organizadorId == request.auth.uid;
 
       // Actualizaciones: organizador o participantes (para join/leave)
       allow update: if isSignedIn() && (
-        // Organizador puede actualizar todo excepto cambiar organizador
-        (isPlanOrganizer() &&
-         request.resource.data.organizadorId == resource.data.organizadorId) ||
+        // Organizador puede actualizar
+        isPlanOrganizer() ||
         // Cualquier usuario puede unirse/salir (modificar arrays de participantes)
-        (request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['participantesIds', 'listaEsperaIds', 'capacidadActual']))
-      ) && isValidDocumentSize();
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['participantesIds', 'listaEsperaIds', 'capacidadActual'])
+      );
 
       // Solo organizador o admin pueden eliminar
       allow delete: if isPlanOrganizer() || isAdmin();
