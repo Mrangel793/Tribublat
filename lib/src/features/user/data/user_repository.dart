@@ -111,6 +111,17 @@ class UserRepository {
     }
   }
 
+  /// Crea el perfil completo del usuario
+  Future<void> createUserProfile(UserModel user) async {
+    try {
+      await _databaseRepository.updateUserProfile(user);
+    } catch (e) {
+      throw UserRepositoryException(
+        'Error al crear perfil de usuario: ${e.toString()}',
+      );
+    }
+  }
+
   /// Stream del perfil completo del usuario
   Stream<UserModel?> userProfileStream(String userId) {
     return _databaseRepository.userModelStream(userId);

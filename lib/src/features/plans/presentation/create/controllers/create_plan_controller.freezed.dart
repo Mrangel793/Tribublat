@@ -37,7 +37,12 @@ mixin _$CreatePlanState {
   double get longitud => throw _privateConstructorUsedError; // Step 4: Publicar
   bool get esPublico => throw _privateConstructorUsedError;
   bool get requiereAprobacion => throw _privateConstructorUsedError;
-  String get imagenBase64 => throw _privateConstructorUsedError; // Estados
+  String get imagenBase64 =>
+      throw _privateConstructorUsedError; // === OPCIONES DE DESTACADO (solo negocios) ===
+  bool get esDestacado => throw _privateConstructorUsedError;
+  SponsorTier get tipoDestacado => throw _privateConstructorUsedError;
+  int get diasDestacado => throw _privateConstructorUsedError;
+  bool get puedeDestacar => throw _privateConstructorUsedError; // Estados
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isSuccess => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
@@ -79,6 +84,10 @@ abstract class $CreatePlanStateCopyWith<$Res> {
     bool esPublico,
     bool requiereAprobacion,
     String imagenBase64,
+    bool esDestacado,
+    SponsorTier tipoDestacado,
+    int diasDestacado,
+    bool puedeDestacar,
     bool isLoading,
     bool isSuccess,
     String? errorMessage,
@@ -123,6 +132,10 @@ class _$CreatePlanStateCopyWithImpl<$Res, $Val extends CreatePlanState>
     Object? esPublico = null,
     Object? requiereAprobacion = null,
     Object? imagenBase64 = null,
+    Object? esDestacado = null,
+    Object? tipoDestacado = null,
+    Object? diasDestacado = null,
+    Object? puedeDestacar = null,
     Object? isLoading = null,
     Object? isSuccess = null,
     Object? errorMessage = freezed,
@@ -207,6 +220,22 @@ class _$CreatePlanStateCopyWithImpl<$Res, $Val extends CreatePlanState>
                 ? _value.imagenBase64
                 : imagenBase64 // ignore: cast_nullable_to_non_nullable
                       as String,
+            esDestacado: null == esDestacado
+                ? _value.esDestacado
+                : esDestacado // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            tipoDestacado: null == tipoDestacado
+                ? _value.tipoDestacado
+                : tipoDestacado // ignore: cast_nullable_to_non_nullable
+                      as SponsorTier,
+            diasDestacado: null == diasDestacado
+                ? _value.diasDestacado
+                : diasDestacado // ignore: cast_nullable_to_non_nullable
+                      as int,
+            puedeDestacar: null == puedeDestacar
+                ? _value.puedeDestacar
+                : puedeDestacar // ignore: cast_nullable_to_non_nullable
+                      as bool,
             isLoading: null == isLoading
                 ? _value.isLoading
                 : isLoading // ignore: cast_nullable_to_non_nullable
@@ -276,6 +305,10 @@ abstract class _$$CreatePlanStateImplCopyWith<$Res>
     bool esPublico,
     bool requiereAprobacion,
     String imagenBase64,
+    bool esDestacado,
+    SponsorTier tipoDestacado,
+    int diasDestacado,
+    bool puedeDestacar,
     bool isLoading,
     bool isSuccess,
     String? errorMessage,
@@ -320,6 +353,10 @@ class __$$CreatePlanStateImplCopyWithImpl<$Res>
     Object? esPublico = null,
     Object? requiereAprobacion = null,
     Object? imagenBase64 = null,
+    Object? esDestacado = null,
+    Object? tipoDestacado = null,
+    Object? diasDestacado = null,
+    Object? puedeDestacar = null,
     Object? isLoading = null,
     Object? isSuccess = null,
     Object? errorMessage = freezed,
@@ -404,6 +441,22 @@ class __$$CreatePlanStateImplCopyWithImpl<$Res>
             ? _value.imagenBase64
             : imagenBase64 // ignore: cast_nullable_to_non_nullable
                   as String,
+        esDestacado: null == esDestacado
+            ? _value.esDestacado
+            : esDestacado // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        tipoDestacado: null == tipoDestacado
+            ? _value.tipoDestacado
+            : tipoDestacado // ignore: cast_nullable_to_non_nullable
+                  as SponsorTier,
+        diasDestacado: null == diasDestacado
+            ? _value.diasDestacado
+            : diasDestacado // ignore: cast_nullable_to_non_nullable
+                  as int,
+        puedeDestacar: null == puedeDestacar
+            ? _value.puedeDestacar
+            : puedeDestacar // ignore: cast_nullable_to_non_nullable
+                  as bool,
         isLoading: null == isLoading
             ? _value.isLoading
             : isLoading // ignore: cast_nullable_to_non_nullable
@@ -452,6 +505,10 @@ class _$CreatePlanStateImpl extends _CreatePlanState {
     this.esPublico = true,
     this.requiereAprobacion = false,
     this.imagenBase64 = '',
+    this.esDestacado = false,
+    this.tipoDestacado = SponsorTier.none,
+    this.diasDestacado = 7,
+    this.puedeDestacar = false,
     this.isLoading = false,
     this.isSuccess = false,
     this.errorMessage,
@@ -521,6 +578,19 @@ class _$CreatePlanStateImpl extends _CreatePlanState {
   @override
   @JsonKey()
   final String imagenBase64;
+  // === OPCIONES DE DESTACADO (solo negocios) ===
+  @override
+  @JsonKey()
+  final bool esDestacado;
+  @override
+  @JsonKey()
+  final SponsorTier tipoDestacado;
+  @override
+  @JsonKey()
+  final int diasDestacado;
+  @override
+  @JsonKey()
+  final bool puedeDestacar;
   // Estados
   @override
   @JsonKey()
@@ -538,7 +608,7 @@ class _$CreatePlanStateImpl extends _CreatePlanState {
 
   @override
   String toString() {
-    return 'CreatePlanState(currentStep: $currentStep, titulo: $titulo, descripcion: $descripcion, categoria: $categoria, nivelEnergia: $nivelEnergia, capacidadMaxima: $capacidadMaxima, tieneCosto: $tieneCosto, precio: $precio, fecha: $fecha, horaInicio: $horaInicio, horaFin: $horaFin, duracionMinutos: $duracionMinutos, ciudad: $ciudad, ubicacionNombre: $ubicacionNombre, latitud: $latitud, longitud: $longitud, esPublico: $esPublico, requiereAprobacion: $requiereAprobacion, imagenBase64: $imagenBase64, isLoading: $isLoading, isSuccess: $isSuccess, errorMessage: $errorMessage, createdPlanId: $createdPlanId, currentUser: $currentUser)';
+    return 'CreatePlanState(currentStep: $currentStep, titulo: $titulo, descripcion: $descripcion, categoria: $categoria, nivelEnergia: $nivelEnergia, capacidadMaxima: $capacidadMaxima, tieneCosto: $tieneCosto, precio: $precio, fecha: $fecha, horaInicio: $horaInicio, horaFin: $horaFin, duracionMinutos: $duracionMinutos, ciudad: $ciudad, ubicacionNombre: $ubicacionNombre, latitud: $latitud, longitud: $longitud, esPublico: $esPublico, requiereAprobacion: $requiereAprobacion, imagenBase64: $imagenBase64, esDestacado: $esDestacado, tipoDestacado: $tipoDestacado, diasDestacado: $diasDestacado, puedeDestacar: $puedeDestacar, isLoading: $isLoading, isSuccess: $isSuccess, errorMessage: $errorMessage, createdPlanId: $createdPlanId, currentUser: $currentUser)';
   }
 
   @override
@@ -578,6 +648,14 @@ class _$CreatePlanStateImpl extends _CreatePlanState {
                 other.requiereAprobacion == requiereAprobacion) &&
             (identical(other.imagenBase64, imagenBase64) ||
                 other.imagenBase64 == imagenBase64) &&
+            (identical(other.esDestacado, esDestacado) ||
+                other.esDestacado == esDestacado) &&
+            (identical(other.tipoDestacado, tipoDestacado) ||
+                other.tipoDestacado == tipoDestacado) &&
+            (identical(other.diasDestacado, diasDestacado) ||
+                other.diasDestacado == diasDestacado) &&
+            (identical(other.puedeDestacar, puedeDestacar) ||
+                other.puedeDestacar == puedeDestacar) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isSuccess, isSuccess) ||
@@ -612,6 +690,10 @@ class _$CreatePlanStateImpl extends _CreatePlanState {
     esPublico,
     requiereAprobacion,
     imagenBase64,
+    esDestacado,
+    tipoDestacado,
+    diasDestacado,
+    puedeDestacar,
     isLoading,
     isSuccess,
     errorMessage,
@@ -652,6 +734,10 @@ abstract class _CreatePlanState extends CreatePlanState {
     final bool esPublico,
     final bool requiereAprobacion,
     final String imagenBase64,
+    final bool esDestacado,
+    final SponsorTier tipoDestacado,
+    final int diasDestacado,
+    final bool puedeDestacar,
     final bool isLoading,
     final bool isSuccess,
     final String? errorMessage,
@@ -698,7 +784,15 @@ abstract class _CreatePlanState extends CreatePlanState {
   @override
   bool get requiereAprobacion;
   @override
-  String get imagenBase64; // Estados
+  String get imagenBase64; // === OPCIONES DE DESTACADO (solo negocios) ===
+  @override
+  bool get esDestacado;
+  @override
+  SponsorTier get tipoDestacado;
+  @override
+  int get diasDestacado;
+  @override
+  bool get puedeDestacar; // Estados
   @override
   bool get isLoading;
   @override

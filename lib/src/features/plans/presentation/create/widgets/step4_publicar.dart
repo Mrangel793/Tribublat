@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
+import 'package:myapp/src/features/plans/presentation/create/widgets/sponsor_options_widget.dart';
 
 class Step4Publicar extends ConsumerWidget {
   const Step4Publicar({super.key});
@@ -24,6 +25,10 @@ class Step4Publicar extends ConsumerWidget {
           _buildSectionTitle('Configuracion de privacidad'),
           const SizedBox(height: 16),
           _buildPrivacyOptions(state, controller),
+
+          // Widget de opciones de destacado (solo visible para negocios)
+          const SponsorOptionsWidget(),
+
           const SizedBox(height: 24),
           _buildSectionTitle('Imagen del plan'),
           const SizedBox(height: 8),

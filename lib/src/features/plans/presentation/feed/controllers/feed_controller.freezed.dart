@@ -26,7 +26,16 @@ mixin _$FeedState {
   Map<String, int> get matchScores =>
       throw _privateConstructorUsedError; // Datos del usuario para matching
   UserModel? get currentUser =>
-      throw _privateConstructorUsedError; // Estados de carga
+      throw _privateConstructorUsedError; // === FILTROS AVANZADOS ===
+  String? get selectedCity =>
+      throw _privateConstructorUsedError; // Ciudad seleccionada
+  PlanCategory? get selectedCategory =>
+      throw _privateConstructorUsedError; // Categoria seleccionada
+  AgeRange get selectedAgeRange =>
+      throw _privateConstructorUsedError; // Rango de edad
+  bool get filterByPlanRestriction =>
+      throw _privateConstructorUsedError; // Solo con restriccion de edad
+  // Estados de carga
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isRefreshing => throw _privateConstructorUsedError;
   bool get isSearching => throw _privateConstructorUsedError;
@@ -54,6 +63,10 @@ abstract class $FeedStateCopyWith<$Res> {
     List<PlanModel> plans,
     Map<String, int> matchScores,
     UserModel? currentUser,
+    String? selectedCity,
+    PlanCategory? selectedCategory,
+    AgeRange selectedAgeRange,
+    bool filterByPlanRestriction,
     bool isLoading,
     bool isRefreshing,
     bool isSearching,
@@ -86,6 +99,10 @@ class _$FeedStateCopyWithImpl<$Res, $Val extends FeedState>
     Object? plans = null,
     Object? matchScores = null,
     Object? currentUser = freezed,
+    Object? selectedCity = freezed,
+    Object? selectedCategory = freezed,
+    Object? selectedAgeRange = null,
+    Object? filterByPlanRestriction = null,
     Object? isLoading = null,
     Object? isRefreshing = null,
     Object? isSearching = null,
@@ -119,6 +136,22 @@ class _$FeedStateCopyWithImpl<$Res, $Val extends FeedState>
                 ? _value.currentUser
                 : currentUser // ignore: cast_nullable_to_non_nullable
                       as UserModel?,
+            selectedCity: freezed == selectedCity
+                ? _value.selectedCity
+                : selectedCity // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            selectedCategory: freezed == selectedCategory
+                ? _value.selectedCategory
+                : selectedCategory // ignore: cast_nullable_to_non_nullable
+                      as PlanCategory?,
+            selectedAgeRange: null == selectedAgeRange
+                ? _value.selectedAgeRange
+                : selectedAgeRange // ignore: cast_nullable_to_non_nullable
+                      as AgeRange,
+            filterByPlanRestriction: null == filterByPlanRestriction
+                ? _value.filterByPlanRestriction
+                : filterByPlanRestriction // ignore: cast_nullable_to_non_nullable
+                      as bool,
             isLoading: null == isLoading
                 ? _value.isLoading
                 : isLoading // ignore: cast_nullable_to_non_nullable
@@ -179,6 +212,10 @@ abstract class _$$FeedStateImplCopyWith<$Res>
     List<PlanModel> plans,
     Map<String, int> matchScores,
     UserModel? currentUser,
+    String? selectedCity,
+    PlanCategory? selectedCategory,
+    AgeRange selectedAgeRange,
+    bool filterByPlanRestriction,
     bool isLoading,
     bool isRefreshing,
     bool isSearching,
@@ -211,6 +248,10 @@ class __$$FeedStateImplCopyWithImpl<$Res>
     Object? plans = null,
     Object? matchScores = null,
     Object? currentUser = freezed,
+    Object? selectedCity = freezed,
+    Object? selectedCategory = freezed,
+    Object? selectedAgeRange = null,
+    Object? filterByPlanRestriction = null,
     Object? isLoading = null,
     Object? isRefreshing = null,
     Object? isSearching = null,
@@ -244,6 +285,22 @@ class __$$FeedStateImplCopyWithImpl<$Res>
             ? _value.currentUser
             : currentUser // ignore: cast_nullable_to_non_nullable
                   as UserModel?,
+        selectedCity: freezed == selectedCity
+            ? _value.selectedCity
+            : selectedCity // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        selectedCategory: freezed == selectedCategory
+            ? _value.selectedCategory
+            : selectedCategory // ignore: cast_nullable_to_non_nullable
+                  as PlanCategory?,
+        selectedAgeRange: null == selectedAgeRange
+            ? _value.selectedAgeRange
+            : selectedAgeRange // ignore: cast_nullable_to_non_nullable
+                  as AgeRange,
+        filterByPlanRestriction: null == filterByPlanRestriction
+            ? _value.filterByPlanRestriction
+            : filterByPlanRestriction // ignore: cast_nullable_to_non_nullable
+                  as bool,
         isLoading: null == isLoading
             ? _value.isLoading
             : isLoading // ignore: cast_nullable_to_non_nullable
@@ -275,7 +332,7 @@ class __$$FeedStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$FeedStateImpl implements _FeedState {
+class _$FeedStateImpl extends _FeedState {
   const _$FeedStateImpl({
     this.currentTab = FeedTab.paraTi,
     this.currentFilter = FeedFilter.todos,
@@ -283,6 +340,10 @@ class _$FeedStateImpl implements _FeedState {
     final List<PlanModel> plans = const [],
     final Map<String, int> matchScores = const {},
     this.currentUser,
+    this.selectedCity,
+    this.selectedCategory,
+    this.selectedAgeRange = AgeRange.todos,
+    this.filterByPlanRestriction = false,
     this.isLoading = true,
     this.isRefreshing = false,
     this.isSearching = false,
@@ -290,7 +351,8 @@ class _$FeedStateImpl implements _FeedState {
     this.errorMessage,
     this.successMessage,
   }) : _plans = plans,
-       _matchScores = matchScores;
+       _matchScores = matchScores,
+       super._();
 
   // Tab y filtro actual
   @override
@@ -325,6 +387,21 @@ class _$FeedStateImpl implements _FeedState {
   // Datos del usuario para matching
   @override
   final UserModel? currentUser;
+  // === FILTROS AVANZADOS ===
+  @override
+  final String? selectedCity;
+  // Ciudad seleccionada
+  @override
+  final PlanCategory? selectedCategory;
+  // Categoria seleccionada
+  @override
+  @JsonKey()
+  final AgeRange selectedAgeRange;
+  // Rango de edad
+  @override
+  @JsonKey()
+  final bool filterByPlanRestriction;
+  // Solo con restriccion de edad
   // Estados de carga
   @override
   @JsonKey()
@@ -346,7 +423,7 @@ class _$FeedStateImpl implements _FeedState {
 
   @override
   String toString() {
-    return 'FeedState(currentTab: $currentTab, currentFilter: $currentFilter, searchQuery: $searchQuery, plans: $plans, matchScores: $matchScores, currentUser: $currentUser, isLoading: $isLoading, isRefreshing: $isRefreshing, isSearching: $isSearching, joiningPlanId: $joiningPlanId, errorMessage: $errorMessage, successMessage: $successMessage)';
+    return 'FeedState(currentTab: $currentTab, currentFilter: $currentFilter, searchQuery: $searchQuery, plans: $plans, matchScores: $matchScores, currentUser: $currentUser, selectedCity: $selectedCity, selectedCategory: $selectedCategory, selectedAgeRange: $selectedAgeRange, filterByPlanRestriction: $filterByPlanRestriction, isLoading: $isLoading, isRefreshing: $isRefreshing, isSearching: $isSearching, joiningPlanId: $joiningPlanId, errorMessage: $errorMessage, successMessage: $successMessage)';
   }
 
   @override
@@ -367,6 +444,17 @@ class _$FeedStateImpl implements _FeedState {
             ) &&
             (identical(other.currentUser, currentUser) ||
                 other.currentUser == currentUser) &&
+            (identical(other.selectedCity, selectedCity) ||
+                other.selectedCity == selectedCity) &&
+            (identical(other.selectedCategory, selectedCategory) ||
+                other.selectedCategory == selectedCategory) &&
+            (identical(other.selectedAgeRange, selectedAgeRange) ||
+                other.selectedAgeRange == selectedAgeRange) &&
+            (identical(
+                  other.filterByPlanRestriction,
+                  filterByPlanRestriction,
+                ) ||
+                other.filterByPlanRestriction == filterByPlanRestriction) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isRefreshing, isRefreshing) ||
@@ -390,6 +478,10 @@ class _$FeedStateImpl implements _FeedState {
     const DeepCollectionEquality().hash(_plans),
     const DeepCollectionEquality().hash(_matchScores),
     currentUser,
+    selectedCity,
+    selectedCategory,
+    selectedAgeRange,
+    filterByPlanRestriction,
     isLoading,
     isRefreshing,
     isSearching,
@@ -407,7 +499,7 @@ class _$FeedStateImpl implements _FeedState {
       __$$FeedStateImplCopyWithImpl<_$FeedStateImpl>(this, _$identity);
 }
 
-abstract class _FeedState implements FeedState {
+abstract class _FeedState extends FeedState {
   const factory _FeedState({
     final FeedTab currentTab,
     final FeedFilter currentFilter,
@@ -415,6 +507,10 @@ abstract class _FeedState implements FeedState {
     final List<PlanModel> plans,
     final Map<String, int> matchScores,
     final UserModel? currentUser,
+    final String? selectedCity,
+    final PlanCategory? selectedCategory,
+    final AgeRange selectedAgeRange,
+    final bool filterByPlanRestriction,
     final bool isLoading,
     final bool isRefreshing,
     final bool isSearching,
@@ -422,6 +518,7 @@ abstract class _FeedState implements FeedState {
     final String? errorMessage,
     final String? successMessage,
   }) = _$FeedStateImpl;
+  const _FeedState._() : super._();
 
   // Tab y filtro actual
   @override
@@ -435,7 +532,16 @@ abstract class _FeedState implements FeedState {
   @override
   Map<String, int> get matchScores; // Datos del usuario para matching
   @override
-  UserModel? get currentUser; // Estados de carga
+  UserModel? get currentUser; // === FILTROS AVANZADOS ===
+  @override
+  String? get selectedCity; // Ciudad seleccionada
+  @override
+  PlanCategory? get selectedCategory; // Categoria seleccionada
+  @override
+  AgeRange get selectedAgeRange; // Rango de edad
+  @override
+  bool get filterByPlanRestriction; // Solo con restriccion de edad
+  // Estados de carga
   @override
   bool get isLoading;
   @override

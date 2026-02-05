@@ -12,6 +12,31 @@ class DatabaseRepository {
     await _firestore.collection('users').doc(user.uid).set(user.toMap());
   }
 
+  /// Crea el documento base del usuario inmediatamente despues del registro
+  /// Esto asegura que el usuario siempre tenga un documento en Firestore
+  Future<void> createBaseUserProfile({
+    required String uid,
+    required String email,
+    required String nombre,
+  }) async {
+    await _firestore.collection('users').doc(uid).set({
+      'id': uid,
+      'email': email,
+      'nombre': nombre,
+      'edad': 0,
+      'ciudad': '',
+      'foto': '',
+      'intereses': <String>[],
+      'nivelEnergia': 'media',
+      'rol': 'usuario',
+      'fechaCreacion': DateTime.now().toIso8601String(),
+      'ultimaConexion': DateTime.now().toIso8601String(),
+      'verificado': false,
+      'reputacion': 5.0,
+      'fotosAdicionales': <String>[],
+    }, SetOptions(merge: true));
+  }
+
   Stream<AppUser?> userStream(String uid) {
     return _firestore.collection('users').doc(uid).snapshots().map((snapshot) {
       if (snapshot.exists) {

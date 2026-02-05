@@ -9,6 +9,7 @@ import 'energy_tag.dart';
 import 'capacity_indicator.dart';
 import 'organizer_row.dart';
 import 'plan_action_button.dart';
+import 'sponsored_badge.dart';
 
 /// Card principal para mostrar un plan en el feed
 class PlanCard extends StatelessWidget {
@@ -35,16 +36,24 @@ class PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSponsored = plan.estaDestacadoActivo;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
+          // Borde especial para planes destacados
+          border: isSponsored
+              ? Border.all(color: plan.tipoDestacado.color, width: 2)
+              : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withAlpha(38),
-              blurRadius: 15,
+              color: isSponsored
+                  ? plan.tipoDestacado.color.withAlpha(50)
+                  : Colors.grey.withAlpha(38),
+              blurRadius: isSponsored ? 20 : 15,
               offset: const Offset(0, 5),
             ),
           ],
@@ -144,6 +153,14 @@ class PlanCard extends StatelessWidget {
             child: MatchBadge(percentage: matchPercentage!),
           ),
 
+        // Badge de destacado (debajo del match o arriba izquierda)
+        if (plan.estaDestacadoActivo)
+          Positioned(
+            top: matchPercentage != null && matchPercentage! > 0 ? 48 : 12,
+            left: 12,
+            child: SponsoredBadge(tier: plan.tipoDestacado),
+          ),
+
         // Badge de categoría (arriba derecha)
         Positioned(
           top: 12,
@@ -153,6 +170,16 @@ class PlanCard extends StatelessWidget {
             emoji: categoryInfo?.emoji ?? '📌',
           ),
         ),
+
+        // Banner para planes exclusivos
+        if (plan.estaDestacadoActivo &&
+            plan.tipoDestacado == SponsorTier.exclusivo)
+          const Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SponsoredBanner(),
+          ),
       ],
     );
   }

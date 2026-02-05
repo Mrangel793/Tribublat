@@ -153,3 +153,155 @@ enum FeedTab {
   instantaneos,
   misPlanes,
 }
+
+/// Niveles de planes destacados/patrocinados (solo para negocios)
+enum SponsorTier {
+  none, // No destacado
+  basico, // Destacado basico - aparece con badge
+  premium, // Premium - aparece primero en feeds
+  exclusivo, // Exclusivo - banner en la parte superior
+}
+
+/// Extension para obtener informacion del tier de sponsor
+extension SponsorTierInfo on SponsorTier {
+  String get nombre {
+    switch (this) {
+      case SponsorTier.none:
+        return 'Sin destacar';
+      case SponsorTier.basico:
+        return 'Destacado';
+      case SponsorTier.premium:
+        return 'Premium';
+      case SponsorTier.exclusivo:
+        return 'Exclusivo';
+    }
+  }
+
+  String get descripcion {
+    switch (this) {
+      case SponsorTier.none:
+        return 'Plan normal sin destacar';
+      case SponsorTier.basico:
+        return 'Badge de destacado visible';
+      case SponsorTier.premium:
+        return 'Aparece primero en el feed';
+      case SponsorTier.exclusivo:
+        return 'Banner promocional + primero en feed';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case SponsorTier.none:
+        return const Color(0xFF636E72);
+      case SponsorTier.basico:
+        return const Color(0xFF4ECDC4);
+      case SponsorTier.premium:
+        return const Color(0xFFFFB347);
+      case SponsorTier.exclusivo:
+        return const Color(0xFFFF6B9D);
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case SponsorTier.none:
+        return Icons.remove_circle_outline;
+      case SponsorTier.basico:
+        return Icons.star_outline;
+      case SponsorTier.premium:
+        return Icons.star;
+      case SponsorTier.exclusivo:
+        return Icons.auto_awesome;
+    }
+  }
+}
+
+/// Rangos de edad para filtros
+enum AgeRange {
+  todos,
+  jovenes,  // 18-25
+  adultos,  // 26-40
+  seniors,  // 40+
+}
+
+/// Extension para obtener informacion del rango de edad
+extension AgeRangeInfo on AgeRange {
+  String get nombre {
+    switch (this) {
+      case AgeRange.todos:
+        return 'Todas las edades';
+      case AgeRange.jovenes:
+        return '18-25 anos';
+      case AgeRange.adultos:
+        return '26-40 anos';
+      case AgeRange.seniors:
+        return '40+ anos';
+    }
+  }
+
+  String get nombreCorto {
+    switch (this) {
+      case AgeRange.todos:
+        return 'Todos';
+      case AgeRange.jovenes:
+        return '18-25';
+      case AgeRange.adultos:
+        return '26-40';
+      case AgeRange.seniors:
+        return '40+';
+    }
+  }
+
+  int? get minAge {
+    switch (this) {
+      case AgeRange.todos:
+        return null;
+      case AgeRange.jovenes:
+        return 18;
+      case AgeRange.adultos:
+        return 26;
+      case AgeRange.seniors:
+        return 40;
+    }
+  }
+
+  int? get maxAge {
+    switch (this) {
+      case AgeRange.todos:
+        return null;
+      case AgeRange.jovenes:
+        return 25;
+      case AgeRange.adultos:
+        return 40;
+      case AgeRange.seniors:
+        return null;
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AgeRange.todos:
+        return Icons.people;
+      case AgeRange.jovenes:
+        return Icons.person;
+      case AgeRange.adultos:
+        return Icons.person_outline;
+      case AgeRange.seniors:
+        return Icons.elderly;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case AgeRange.todos:
+        return const Color(0xFF9B59B6);
+      case AgeRange.jovenes:
+        return const Color(0xFF4ECDC4);
+      case AgeRange.adultos:
+        return const Color(0xFFFFB347);
+      case AgeRange.seniors:
+        return const Color(0xFF95E1D3);
+    }
+  }
+}

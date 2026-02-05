@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:myapp/src/features/auth/data/auth_repository.dart';
+import 'package:myapp/src/features/auth/data/database_repository.dart';
 import 'package:myapp/src/features/auth/provider/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -33,13 +35,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
+        // 1. Crear usuario en Firebase Auth
         await ref.read(authRepositoryProvider).signUp(
               email: _emailController.text,
               password: _passwordController.text,
               displayName: _nameController.text,
             );
+
+        // 2. Crear documento base en Firestore inmediatamente
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          await ref.read(databaseRepositoryProvider).createBaseUserProfile(
+                uid: currentUser.uid,
+                email: _emailController.text,
+                nombre: _nameController.text,
+              );
+        }
+
         if (mounted) {
-          context.go('/profile/step-1');
+          // Navegar a la configuración del perfil después del registro
+          context.go('/profile/setup');
         }
       } on AuthException catch (e) {
         if (!mounted) return;

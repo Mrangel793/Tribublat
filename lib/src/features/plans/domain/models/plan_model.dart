@@ -55,9 +55,27 @@ class PlanModel with _$PlanModel {
     @Default(true) bool esPublico,
     @Default(false) bool requiereAprobacion,
 
-    // Métricas
+    // Restricciones de edad
+    int? edadMinima,    // Edad minima para participar (ej: 18)
+    int? edadMaxima,    // Edad maxima para participar (ej: 30)
+
+    // Metricas basicas
     @Default(0) int vistas,
     @Default(0.0) double puntuacionPromedio,
+
+    // === PLANES DESTACADOS (solo negocios) ===
+    @Default(false) bool esDestacado,
+    DateTime? fechaFinDestacado,
+    @Default(SponsorTier.none) SponsorTier tipoDestacado,
+
+    // === METRICAS AVANZADAS ===
+    @Default(0) int impresiones,
+    @Default(0) int clicsDetalle,
+    @Default(0) int intentosUnirse,
+    @Default(0) int conversiones,
+
+    // === ROL DEL ORGANIZADOR ===
+    @Default(UserRole.usuario) UserRole organizadorRol,
   }) = _PlanModel;
 
   factory PlanModel.fromJson(Map<String, dynamic> json) =>
@@ -101,4 +119,76 @@ class PlanModel with _$PlanModel {
 
   /// Verifica si un usuario está en lista de espera
   bool isUserInWaitingList(String userId) => listaEsperaIds.contains(userId);
+
+  // === METODOS DE PLANES DESTACADOS ===
+
+  /// Indica si el plan esta activamente destacado
+  bool get estaDestacadoActivo {
+    if (!esDestacado) return false;
+    if (fechaFinDestacado == null) return true;
+    return fechaFinDestacado!.isAfter(DateTime.now());
+  }
+
+  /// Dias restantes de destacado
+  int get diasRestantesDestacado {
+    if (!estaDestacadoActivo || fechaFinDestacado == null) return 0;
+    return fechaFinDestacado!.difference(DateTime.now()).inDays;
+  }
+
+  // === METODOS DE METRICAS ===
+
+  /// CTR (Click Through Rate) - porcentaje de clics sobre impresiones
+  double get ctr {
+    if (impresiones == 0) return 0.0;
+    return (clicsDetalle / impresiones) * 100;
+  }
+
+  /// Tasa de conversion - porcentaje de uniones sobre clics
+  double get tasaConversion {
+    if (clicsDetalle == 0) return 0.0;
+    return (conversiones / clicsDetalle) * 100;
+  }
+
+  /// Indica si el organizador es un negocio
+  bool get esDeNegocio =>
+      organizadorRol == UserRole.negocio || organizadorRol == UserRole.admin;
+
+  // === METODOS DE RESTRICCION DE EDAD ===
+
+  /// Indica si el plan tiene restriccion de edad
+  bool get tieneRestriccionEdad => edadMinima != null || edadMaxima != null;
+
+  /// Formato de restriccion de edad
+  String get restriccionEdadFormateada {
+    if (!tieneRestriccionEdad) return 'Sin restriccion';
+    if (edadMinima != null && edadMaxima != null) {
+      return '$edadMinima-$edadMaxima anos';
+    }
+    if (edadMinima != null) return '+$edadMinima anos';
+    if (edadMaxima != null) return 'Hasta $edadMaxima anos';
+    return 'Sin restriccion';
+  }
+
+  /// Verifica si una persona de cierta edad puede participar
+  bool puedeParticipar(int edad) {
+    if (edadMinima != null && edad < edadMinima!) return false;
+    if (edadMaxima != null && edad > edadMaxima!) return false;
+    return true;
+  }
+
+  /// Verifica si el plan es para un rango de edad especifico
+  bool estaEnRangoEdad(int? minAge, int? maxAge) {
+    if (minAge == null && maxAge == null) return true;
+
+    // Si el plan no tiene restricciones, aplica a todos los rangos
+    if (!tieneRestriccionEdad) return true;
+
+    // Verificar superposicion de rangos
+    final planMin = edadMinima ?? 0;
+    final planMax = edadMaxima ?? 999;
+    final filterMin = minAge ?? 0;
+    final filterMax = maxAge ?? 999;
+
+    return planMin <= filterMax && planMax >= filterMin;
+  }
 }

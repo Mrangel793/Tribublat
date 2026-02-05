@@ -105,6 +105,21 @@ class PlanRepository {
     });
   }
 
+  /// Stream de un plan específico por ID
+  Stream<PlanModel?> watchPlan(String planId) {
+    return _plansRef.doc(planId).snapshots().map((doc) {
+      if (!doc.exists || doc.data() == null) return null;
+      return PlanModel.fromJson({...doc.data()!, 'id': doc.id});
+    });
+  }
+
+  /// Obtener un plan por ID (una sola vez)
+  Future<PlanModel?> getPlan(String planId) async {
+    final doc = await _plansRef.doc(planId).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return PlanModel.fromJson({...doc.data()!, 'id': doc.id});
+  }
+
   /// Obtener planes personalizados basados en intereses del usuario
   Future<List<PlanModel>> getPersonalizedPlans({
     required List<String> userInterests,
@@ -169,21 +184,6 @@ class PlanRepository {
     }
 
     return score;
-  }
-
-  /// Obtener un plan por ID
-  Future<PlanModel?> getPlanById(String planId) async {
-    final doc = await _plansRef.doc(planId).get();
-    if (!doc.exists) return null;
-    return PlanModel.fromJson({...doc.data()!, 'id': doc.id});
-  }
-
-  /// Stream de un plan específico
-  Stream<PlanModel?> watchPlan(String planId) {
-    return _plansRef.doc(planId).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      return PlanModel.fromJson({...doc.data()!, 'id': doc.id});
-    });
   }
 
   // ============ OPERACIONES DE ESCRITURA ============
@@ -287,6 +287,47 @@ class PlanRepository {
     await _plansRef.doc(planId).delete();
   }
 
+  /// Stream de planes activos con destacados primero
+  Stream<List<PlanModel>> watchActivePlansWithSponsored({
+    String? ciudad,
+    int limit = 20,
+  }) {
+    Query<Map<String, dynamic>> query = _plansRef
+        .where('estado', isEqualTo: PlanStatus.activo.name)
+        .where('fechaHora', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
+        .orderBy('fechaHora')
+        .limit(limit);
+
+    if (ciudad != null && ciudad.isNotEmpty) {
+      query = query.where('ciudad', isEqualTo: ciudad);
+    }
+
+    return query.snapshots().map((snapshot) {
+      final plans = snapshot.docs
+          .map((doc) => PlanModel.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      // Ordenar: destacados activos primero, luego por fecha
+      plans.sort((a, b) {
+        // Primero por destacado activo
+        if (a.estaDestacadoActivo && !b.estaDestacadoActivo) return -1;
+        if (!a.estaDestacadoActivo && b.estaDestacadoActivo) return 1;
+
+        // Entre destacados, ordenar por tier (mayor tier primero)
+        if (a.estaDestacadoActivo && b.estaDestacadoActivo) {
+          final tierComparison =
+              b.tipoDestacado.index.compareTo(a.tipoDestacado.index);
+          if (tierComparison != 0) return tierComparison;
+        }
+
+        // Finalmente por fecha
+        return a.fechaHora.compareTo(b.fechaHora);
+      });
+
+      return plans;
+    });
+  }
+
   /// Buscar planes por título
   Future<List<PlanModel>> searchPlans(String query, {int limit = 20}) async {
     // Nota: Firestore no soporta búsqueda full-text nativamente
@@ -302,6 +343,165 @@ class PlanRepository {
     final plans = snapshot.docs
         .map((doc) => PlanModel.fromJson({...doc.data(), 'id': doc.id}))
         .where((plan) => plan.titulo.toLowerCase().contains(queryLower))
+        .take(limit)
+        .toList();
+
+    return plans;
+  }
+
+  // ============ FILTROS AVANZADOS ============
+
+  /// Obtener planes con filtros avanzados
+  Future<List<PlanModel>> getFilteredPlans({
+    String? ciudad,
+    PlanCategory? categoria,
+    AgeRange? rangoEdad,
+    bool soloConRestriccionEdad = false,
+    int limit = 20,
+  }) async {
+    Query<Map<String, dynamic>> query = _plansRef
+        .where('estado', isEqualTo: PlanStatus.activo.name)
+        .where('fechaHora', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
+        .orderBy('fechaHora')
+        .limit(limit * 3); // Obtener mas para filtrar client-side
+
+    // Filtro por ciudad (Firestore)
+    if (ciudad != null && ciudad.isNotEmpty) {
+      query = query.where('ciudad', isEqualTo: ciudad);
+    }
+
+    // Filtro por categoria (Firestore)
+    if (categoria != null) {
+      query = query.where('categoria', isEqualTo: categoria.name);
+    }
+
+    final snapshot = await query.get();
+    var plans = snapshot.docs
+        .map((doc) => PlanModel.fromJson({...doc.data(), 'id': doc.id}))
+        .toList();
+
+    // Filtros adicionales (client-side por limitaciones de Firestore)
+
+    // Filtro por rango de edad
+    if (rangoEdad != null && rangoEdad != AgeRange.todos) {
+      plans = plans.where((plan) {
+        return plan.estaEnRangoEdad(rangoEdad.minAge, rangoEdad.maxAge);
+      }).toList();
+    }
+
+    // Filtro solo planes con restriccion de edad
+    if (soloConRestriccionEdad) {
+      plans = plans.where((plan) => plan.tieneRestriccionEdad).toList();
+    }
+
+    // Ordenar: destacados primero
+    plans.sort((a, b) {
+      if (a.estaDestacadoActivo && !b.estaDestacadoActivo) return -1;
+      if (!a.estaDestacadoActivo && b.estaDestacadoActivo) return 1;
+      return a.fechaHora.compareTo(b.fechaHora);
+    });
+
+    return plans.take(limit).toList();
+  }
+
+  /// Stream de planes filtrados por categoria
+  Stream<List<PlanModel>> watchPlansByCategory(
+    PlanCategory categoria, {
+    String? ciudad,
+    int limit = 20,
+  }) {
+    Query<Map<String, dynamic>> query = _plansRef
+        .where('estado', isEqualTo: PlanStatus.activo.name)
+        .where('categoria', isEqualTo: categoria.name)
+        .where('fechaHora', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
+        .orderBy('fechaHora')
+        .limit(limit);
+
+    if (ciudad != null && ciudad.isNotEmpty) {
+      query = query.where('ciudad', isEqualTo: ciudad);
+    }
+
+    return query.snapshots().map((snapshot) {
+      final plans = snapshot.docs
+          .map((doc) => PlanModel.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      // Ordenar: destacados primero
+      plans.sort((a, b) {
+        if (a.estaDestacadoActivo && !b.estaDestacadoActivo) return -1;
+        if (!a.estaDestacadoActivo && b.estaDestacadoActivo) return 1;
+        return a.fechaHora.compareTo(b.fechaHora);
+      });
+
+      return plans;
+    });
+  }
+
+  /// Obtener conteo de planes por categoria
+  Future<int> getPlanCountByCategory(PlanCategory categoria) async {
+    final snapshot = await _plansRef
+        .where('estado', isEqualTo: PlanStatus.activo.name)
+        .where('categoria', isEqualTo: categoria.name)
+        .where('fechaHora', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
+        .count()
+        .get();
+
+    return snapshot.count ?? 0;
+  }
+
+  /// Stream de conteo de planes por categoria
+  Stream<int> watchPlanCountByCategory(PlanCategory categoria) {
+    return _plansRef
+        .where('estado', isEqualTo: PlanStatus.activo.name)
+        .where('categoria', isEqualTo: categoria.name)
+        .where('fechaHora', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// Obtener conteo de planes para todas las categorias
+  Future<Map<PlanCategory, int>> getAllCategoryCounts() async {
+    final counts = <PlanCategory, int>{};
+
+    for (final category in PlanCategory.values) {
+      if (category == PlanCategory.otros) continue;
+      counts[category] = await getPlanCountByCategory(category);
+    }
+
+    return counts;
+  }
+
+  /// Buscar planes mejorada (titulo + descripcion)
+  Future<List<PlanModel>> searchPlansAdvanced(
+    String query, {
+    String? ciudad,
+    PlanCategory? categoria,
+    int limit = 20,
+  }) async {
+    final queryLower = query.toLowerCase();
+
+    Query<Map<String, dynamic>> firestoreQuery = _plansRef
+        .where('estado', isEqualTo: PlanStatus.activo.name)
+        .where('fechaHora', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
+        .orderBy('fechaHora')
+        .limit(limit * 5);
+
+    if (ciudad != null && ciudad.isNotEmpty) {
+      firestoreQuery = firestoreQuery.where('ciudad', isEqualTo: ciudad);
+    }
+
+    if (categoria != null) {
+      firestoreQuery = firestoreQuery.where('categoria', isEqualTo: categoria.name);
+    }
+
+    final snapshot = await firestoreQuery.get();
+
+    final plans = snapshot.docs
+        .map((doc) => PlanModel.fromJson({...doc.data(), 'id': doc.id}))
+        .where((plan) =>
+            plan.titulo.toLowerCase().contains(queryLower) ||
+            plan.descripcion.toLowerCase().contains(queryLower) ||
+            plan.ubicacionNombre.toLowerCase().contains(queryLower))
         .take(limit)
         .toList();
 

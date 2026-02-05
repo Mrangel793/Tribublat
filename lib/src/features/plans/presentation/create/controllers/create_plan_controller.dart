@@ -8,6 +8,7 @@ import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/user/data/user_repository.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
+import 'package:myapp/src/core/permissions/permission_service.dart';
 
 part 'create_plan_controller.freezed.dart';
 
@@ -45,6 +46,12 @@ class CreatePlanState with _$CreatePlanState {
     @Default(true) bool esPublico,
     @Default(false) bool requiereAprobacion,
     @Default('') String imagenBase64,
+
+    // === OPCIONES DE DESTACADO (solo negocios) ===
+    @Default(false) bool esDestacado,
+    @Default(SponsorTier.none) SponsorTier tipoDestacado,
+    @Default(7) int diasDestacado,
+    @Default(false) bool puedeDestacar,
 
     // Estados
     @Default(false) bool isLoading,
@@ -122,6 +129,8 @@ class CreatePlanController extends StateNotifier<CreatePlanState> {
         state = state.copyWith(
           currentUser: user,
           ciudad: user.ciudad,
+          // Verificar si puede destacar planes (negocio o admin)
+          puedeDestacar: PermissionService.canCreateSponsoredPlan(user.rol),
         );
       } else {
         // Si no hay perfil en Firestore, crear uno temporal desde Firebase Auth
@@ -273,6 +282,24 @@ class CreatePlanController extends StateNotifier<CreatePlanState> {
     state = state.copyWith(imagenBase64: '');
   }
 
+  // ============ OPCIONES DE DESTACADO (solo negocios) ============
+
+  void setEsDestacado(bool value) {
+    state = state.copyWith(
+      esDestacado: value && state.puedeDestacar,
+      tipoDestacado: value ? SponsorTier.basico : SponsorTier.none,
+    );
+  }
+
+  void setTipoDestacado(SponsorTier tier) {
+    if (!state.puedeDestacar) return;
+    state = state.copyWith(tipoDestacado: tier);
+  }
+
+  void setDiasDestacado(int dias) {
+    state = state.copyWith(diasDestacado: dias.clamp(1, 30));
+  }
+
   // ============ PUBLICAR PLAN ============
 
   Future<bool> publishPlan() async {
@@ -315,8 +342,13 @@ class CreatePlanController extends StateNotifier<CreatePlanState> {
         state.horaInicio!.minute,
       );
 
+      // Calcular fecha fin de destacado si aplica
+      final fechaFinDestacado = state.esDestacado && state.puedeDestacar
+          ? DateTime.now().add(Duration(days: state.diasDestacado))
+          : null;
+
       final plan = PlanModel(
-        id: '', // Se generará en Firestore
+        id: '', // Se generara en Firestore
         titulo: state.titulo.trim(),
         descripcion: state.descripcion.trim(),
         imagenBase64: state.imagenBase64,
@@ -335,13 +367,19 @@ class CreatePlanController extends StateNotifier<CreatePlanState> {
         longitud: state.longitud,
         capacidadMaxima: state.capacidadMaxima,
         capacidadActual: 1, // El creador cuenta como participante
-        participantesIds: [firebaseUser.uid], // El creador se une automáticamente
+        participantesIds: [firebaseUser.uid], // El creador se une automaticamente
         nivelEnergia: state.nivelEnergia,
         tipoPrecio: state.tieneCosto ? PlanPriceType.fijo : PlanPriceType.gratis,
         precio: state.tieneCosto ? state.precio : 0.0,
         interesesRelacionados: [state.categoria!.name],
         esPublico: state.esPublico,
         requiereAprobacion: state.requiereAprobacion,
+        // Campos de destacado (solo negocios)
+        esDestacado: state.esDestacado && state.puedeDestacar,
+        tipoDestacado: state.puedeDestacar ? state.tipoDestacado : SponsorTier.none,
+        fechaFinDestacado: fechaFinDestacado,
+        // Rol del organizador
+        organizadorRol: state.currentUser?.rol ?? UserRole.usuario,
       );
 
       final planId = await _planRepository.createPlan(plan);

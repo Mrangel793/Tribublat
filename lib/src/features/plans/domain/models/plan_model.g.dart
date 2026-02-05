@@ -55,9 +55,25 @@ _$PlanModelImpl _$$PlanModelImplFromJson(Map<String, dynamic> json) =>
           const [],
       esPublico: json['esPublico'] as bool? ?? true,
       requiereAprobacion: json['requiereAprobacion'] as bool? ?? false,
+      edadMinima: (json['edadMinima'] as num?)?.toInt(),
+      edadMaxima: (json['edadMaxima'] as num?)?.toInt(),
       vistas: (json['vistas'] as num?)?.toInt() ?? 0,
       puntuacionPromedio:
           (json['puntuacionPromedio'] as num?)?.toDouble() ?? 0.0,
+      esDestacado: json['esDestacado'] as bool? ?? false,
+      fechaFinDestacado: json['fechaFinDestacado'] == null
+          ? null
+          : DateTime.parse(json['fechaFinDestacado'] as String),
+      tipoDestacado:
+          $enumDecodeNullable(_$SponsorTierEnumMap, json['tipoDestacado']) ??
+          SponsorTier.none,
+      impresiones: (json['impresiones'] as num?)?.toInt() ?? 0,
+      clicsDetalle: (json['clicsDetalle'] as num?)?.toInt() ?? 0,
+      intentosUnirse: (json['intentosUnirse'] as num?)?.toInt() ?? 0,
+      conversiones: (json['conversiones'] as num?)?.toInt() ?? 0,
+      organizadorRol:
+          $enumDecodeNullable(_$UserRoleEnumMap, json['organizadorRol']) ??
+          UserRole.usuario,
     );
 
 Map<String, dynamic> _$$PlanModelImplToJson(_$PlanModelImpl instance) =>
@@ -90,8 +106,18 @@ Map<String, dynamic> _$$PlanModelImplToJson(_$PlanModelImpl instance) =>
       'interesesRelacionados': instance.interesesRelacionados,
       'esPublico': instance.esPublico,
       'requiereAprobacion': instance.requiereAprobacion,
+      'edadMinima': instance.edadMinima,
+      'edadMaxima': instance.edadMaxima,
       'vistas': instance.vistas,
       'puntuacionPromedio': instance.puntuacionPromedio,
+      'esDestacado': instance.esDestacado,
+      'fechaFinDestacado': instance.fechaFinDestacado?.toIso8601String(),
+      'tipoDestacado': _$SponsorTierEnumMap[instance.tipoDestacado]!,
+      'impresiones': instance.impresiones,
+      'clicsDetalle': instance.clicsDetalle,
+      'intentosUnirse': instance.intentosUnirse,
+      'conversiones': instance.conversiones,
+      'organizadorRol': _$UserRoleEnumMap[instance.organizadorRol]!,
     };
 
 const _$PlanCategoryEnumMap = {
@@ -126,4 +152,18 @@ const _$PlanPriceTypeEnumMap = {
   PlanPriceType.gratis: 'gratis',
   PlanPriceType.fijo: 'fijo',
   PlanPriceType.variable: 'variable',
+};
+
+const _$SponsorTierEnumMap = {
+  SponsorTier.none: 'none',
+  SponsorTier.basico: 'basico',
+  SponsorTier.premium: 'premium',
+  SponsorTier.exclusivo: 'exclusivo',
+};
+
+const _$UserRoleEnumMap = {
+  UserRole.usuario: 'usuario',
+  UserRole.coordinador: 'coordinador',
+  UserRole.negocio: 'negocio',
+  UserRole.admin: 'admin',
 };

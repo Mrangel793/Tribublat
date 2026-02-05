@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:myapp/src/features/auth/provider/auth_provider.dart';
@@ -13,6 +14,8 @@ part 'feed_controller.freezed.dart';
 /// Estado del feed
 @freezed
 class FeedState with _$FeedState {
+  const FeedState._();
+
   const factory FeedState({
     // Tab y filtro actual
     @Default(FeedTab.paraTi) FeedTab currentTab,
@@ -26,6 +29,12 @@ class FeedState with _$FeedState {
     // Datos del usuario para matching
     UserModel? currentUser,
 
+    // === FILTROS AVANZADOS ===
+    String? selectedCity,                              // Ciudad seleccionada
+    PlanCategory? selectedCategory,                    // Categoria seleccionada
+    @Default(AgeRange.todos) AgeRange selectedAgeRange, // Rango de edad
+    @Default(false) bool filterByPlanRestriction,      // Solo con restriccion de edad
+
     // Estados de carga
     @Default(true) bool isLoading,
     @Default(false) bool isRefreshing,
@@ -36,6 +45,23 @@ class FeedState with _$FeedState {
     String? errorMessage,
     String? successMessage,
   }) = _FeedState;
+
+  /// Indica si hay filtros avanzados activos
+  bool get hasActiveFilters =>
+      selectedCity != null ||
+      selectedCategory != null ||
+      selectedAgeRange != AgeRange.todos ||
+      filterByPlanRestriction;
+
+  /// Conteo de filtros activos
+  int get activeFiltersCount {
+    int count = 0;
+    if (selectedCity != null) count++;
+    if (selectedCategory != null) count++;
+    if (selectedAgeRange != AgeRange.todos) count++;
+    if (filterByPlanRestriction) count++;
+    return count;
+  }
 }
 
 /// Controlador del feed
@@ -44,6 +70,7 @@ class FeedController extends StateNotifier<FeedState> {
   final UserRepository _userRepository;
   final String? _currentUserId;
   StreamSubscription<List<PlanModel>>? _plansSubscription;
+  Timer? _searchDebounce;
 
   FeedController(
     this._planRepository,
@@ -56,6 +83,7 @@ class FeedController extends StateNotifier<FeedState> {
   @override
   void dispose() {
     _plansSubscription?.cancel();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -97,11 +125,12 @@ class FeedController extends StateNotifier<FeedState> {
 
       switch (state.currentTab) {
         case FeedTab.paraTi:
+          // "Para ti" muestra todos los planes sin filtrar por ciudad
           if (user != null) {
             plans = await _planRepository.getPersonalizedPlans(
               userInterests: user.intereses,
               userEnergyLevel: user.nivelEnergia,
-              ciudad: ciudad,
+              ciudad: null, // No filtrar por ciudad para mostrar todos
             );
             // Calcular scores para mostrar
             for (final plan in plans) {
@@ -113,16 +142,18 @@ class FeedController extends StateNotifier<FeedState> {
               scores[plan.id] = score.toInt();
             }
           } else {
-            plans = await _planRepository.watchActivePlans(ciudad: ciudad).first;
+            plans = await _planRepository.watchActivePlans().first;
           }
           break;
 
         case FeedTab.cerca:
+          // "Cerca" filtra por la ciudad del usuario
           plans = await _planRepository.watchActivePlans(ciudad: ciudad).first;
           break;
 
         case FeedTab.instantaneos:
-          plans = await _planRepository.watchInstantPlans(ciudad: ciudad).first;
+          // "Instantáneos" muestra todos los planes que inician pronto
+          plans = await _planRepository.watchInstantPlans().first;
           break;
 
         case FeedTab.misPlanes:
@@ -153,26 +184,58 @@ class FeedController extends StateNotifier<FeedState> {
   /// Aplicar filtro actual a la lista de planes
   List<PlanModel> _applyFilter(List<PlanModel> plans) {
     final user = state.currentUser;
+    var filtered = plans.toList();
 
+    // Aplicar filtro basico (chip seleccionado)
     switch (state.currentFilter) {
       case FeedFilter.todos:
-        return plans;
+        break;
 
       case FeedFilter.hoy:
-        return plans.where((p) => p.esHoy).toList();
+        filtered = filtered.where((p) => p.esHoy).toList();
+        break;
 
       case FeedFilter.cerca:
         if (user?.ciudad != null) {
-          return plans.where((p) => p.ciudad == user!.ciudad).toList();
+          filtered = filtered.where((p) => p.ciudad == user!.ciudad).toList();
         }
-        return plans;
+        break;
 
       case FeedFilter.miEnergia:
         if (user != null) {
-          return plans.where((p) => p.nivelEnergia == user.nivelEnergia).toList();
+          filtered = filtered.where((p) => p.nivelEnergia == user.nivelEnergia).toList();
         }
-        return plans;
+        break;
     }
+
+    // === APLICAR FILTROS AVANZADOS ===
+
+    // Filtro por ciudad seleccionada
+    if (state.selectedCity != null && state.selectedCity!.isNotEmpty) {
+      filtered = filtered.where((p) => p.ciudad == state.selectedCity).toList();
+    }
+
+    // Filtro por categoria
+    if (state.selectedCategory != null) {
+      filtered = filtered.where((p) => p.categoria == state.selectedCategory).toList();
+    }
+
+    // Filtro por rango de edad
+    if (state.selectedAgeRange != AgeRange.todos) {
+      filtered = filtered.where((p) {
+        return p.estaEnRangoEdad(
+          state.selectedAgeRange.minAge,
+          state.selectedAgeRange.maxAge,
+        );
+      }).toList();
+    }
+
+    // Filtro solo planes con restriccion de edad
+    if (state.filterByPlanRestriction) {
+      filtered = filtered.where((p) => p.tieneRestriccionEdad).toList();
+    }
+
+    return filtered;
   }
 
   /// Cambiar tab actual
@@ -191,19 +254,110 @@ class FeedController extends StateNotifier<FeedState> {
     }
   }
 
-  /// Buscar planes
+  // ============ FILTROS AVANZADOS ============
+
+  /// Cambiar ciudad seleccionada
+  void setCity(String? city) {
+    state = state.copyWith(selectedCity: city);
+    loadPlans();
+  }
+
+  /// Cambiar categoria seleccionada
+  void setCategory(PlanCategory? category) {
+    state = state.copyWith(selectedCategory: category);
+    loadPlans();
+  }
+
+  /// Cambiar rango de edad
+  void setAgeRange(AgeRange range) {
+    state = state.copyWith(selectedAgeRange: range);
+    loadPlans();
+  }
+
+  /// Toggle filtro de restriccion de edad
+  void togglePlanRestrictionFilter(bool value) {
+    state = state.copyWith(filterByPlanRestriction: value);
+    loadPlans();
+  }
+
+  /// Limpiar todos los filtros avanzados
+  void clearAllFilters() {
+    state = state.copyWith(
+      selectedCity: null,
+      selectedCategory: null,
+      selectedAgeRange: AgeRange.todos,
+      filterByPlanRestriction: false,
+    );
+    loadPlans();
+  }
+
+  /// Aplicar multiples filtros a la vez
+  void applyFilters({
+    String? city,
+    PlanCategory? category,
+    AgeRange? ageRange,
+    bool? planRestriction,
+  }) {
+    state = state.copyWith(
+      selectedCity: city,
+      selectedCategory: category,
+      selectedAgeRange: ageRange ?? AgeRange.todos,
+      filterByPlanRestriction: planRestriction ?? false,
+    );
+    loadPlans();
+  }
+
+  /// Buscar planes con debounce
   Future<void> search(String query) async {
     state = state.copyWith(searchQuery: query);
+
+    // Cancelar busqueda anterior si existe
+    _searchDebounce?.cancel();
 
     if (query.isEmpty) {
       await loadPlans();
       return;
     }
 
-    state = state.copyWith(isSearching: true);
+    // Debounce de 300ms para evitar muchas busquedas
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
+      state = state.copyWith(isSearching: true);
+
+      try {
+        // Usar busqueda avanzada (titulo + descripcion + ubicacion)
+        final results = await _planRepository.searchPlansAdvanced(
+          query,
+          ciudad: state.selectedCity,
+          categoria: state.selectedCategory,
+        );
+        state = state.copyWith(
+          plans: results,
+          isSearching: false,
+        );
+      } catch (e) {
+        state = state.copyWith(
+          isSearching: false,
+          errorMessage: 'Error en la busqueda: ${e.toString()}',
+        );
+      }
+    });
+  }
+
+  /// Buscar planes inmediatamente (sin debounce)
+  Future<void> searchImmediate(String query) async {
+    state = state.copyWith(searchQuery: query, isSearching: true);
+
+    if (query.isEmpty) {
+      await loadPlans();
+      return;
+    }
 
     try {
-      final results = await _planRepository.searchPlans(query);
+      final results = await _planRepository.searchPlansAdvanced(
+        query,
+        ciudad: state.selectedCity,
+        categoria: state.selectedCategory,
+      );
       state = state.copyWith(
         plans: results,
         isSearching: false,

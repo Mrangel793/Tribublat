@@ -53,9 +53,26 @@ mixin _$PlanModel {
   List<String> get interesesRelacionados =>
       throw _privateConstructorUsedError; // Visibilidad
   bool get esPublico => throw _privateConstructorUsedError;
-  bool get requiereAprobacion => throw _privateConstructorUsedError; // Métricas
+  bool get requiereAprobacion =>
+      throw _privateConstructorUsedError; // Restricciones de edad
+  int? get edadMinima =>
+      throw _privateConstructorUsedError; // Edad minima para participar (ej: 18)
+  int? get edadMaxima =>
+      throw _privateConstructorUsedError; // Edad maxima para participar (ej: 30)
+  // Metricas basicas
   int get vistas => throw _privateConstructorUsedError;
-  double get puntuacionPromedio => throw _privateConstructorUsedError;
+  double get puntuacionPromedio =>
+      throw _privateConstructorUsedError; // === PLANES DESTACADOS (solo negocios) ===
+  bool get esDestacado => throw _privateConstructorUsedError;
+  DateTime? get fechaFinDestacado => throw _privateConstructorUsedError;
+  SponsorTier get tipoDestacado =>
+      throw _privateConstructorUsedError; // === METRICAS AVANZADAS ===
+  int get impresiones => throw _privateConstructorUsedError;
+  int get clicsDetalle => throw _privateConstructorUsedError;
+  int get intentosUnirse => throw _privateConstructorUsedError;
+  int get conversiones =>
+      throw _privateConstructorUsedError; // === ROL DEL ORGANIZADOR ===
+  UserRole get organizadorRol => throw _privateConstructorUsedError;
 
   /// Serializes this PlanModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -101,8 +118,18 @@ abstract class $PlanModelCopyWith<$Res> {
     List<String> interesesRelacionados,
     bool esPublico,
     bool requiereAprobacion,
+    int? edadMinima,
+    int? edadMaxima,
     int vistas,
     double puntuacionPromedio,
+    bool esDestacado,
+    DateTime? fechaFinDestacado,
+    SponsorTier tipoDestacado,
+    int impresiones,
+    int clicsDetalle,
+    int intentosUnirse,
+    int conversiones,
+    UserRole organizadorRol,
   });
 }
 
@@ -149,8 +176,18 @@ class _$PlanModelCopyWithImpl<$Res, $Val extends PlanModel>
     Object? interesesRelacionados = null,
     Object? esPublico = null,
     Object? requiereAprobacion = null,
+    Object? edadMinima = freezed,
+    Object? edadMaxima = freezed,
     Object? vistas = null,
     Object? puntuacionPromedio = null,
+    Object? esDestacado = null,
+    Object? fechaFinDestacado = freezed,
+    Object? tipoDestacado = null,
+    Object? impresiones = null,
+    Object? clicsDetalle = null,
+    Object? intentosUnirse = null,
+    Object? conversiones = null,
+    Object? organizadorRol = null,
   }) {
     return _then(
       _value.copyWith(
@@ -266,6 +303,14 @@ class _$PlanModelCopyWithImpl<$Res, $Val extends PlanModel>
                 ? _value.requiereAprobacion
                 : requiereAprobacion // ignore: cast_nullable_to_non_nullable
                       as bool,
+            edadMinima: freezed == edadMinima
+                ? _value.edadMinima
+                : edadMinima // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            edadMaxima: freezed == edadMaxima
+                ? _value.edadMaxima
+                : edadMaxima // ignore: cast_nullable_to_non_nullable
+                      as int?,
             vistas: null == vistas
                 ? _value.vistas
                 : vistas // ignore: cast_nullable_to_non_nullable
@@ -274,6 +319,38 @@ class _$PlanModelCopyWithImpl<$Res, $Val extends PlanModel>
                 ? _value.puntuacionPromedio
                 : puntuacionPromedio // ignore: cast_nullable_to_non_nullable
                       as double,
+            esDestacado: null == esDestacado
+                ? _value.esDestacado
+                : esDestacado // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            fechaFinDestacado: freezed == fechaFinDestacado
+                ? _value.fechaFinDestacado
+                : fechaFinDestacado // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            tipoDestacado: null == tipoDestacado
+                ? _value.tipoDestacado
+                : tipoDestacado // ignore: cast_nullable_to_non_nullable
+                      as SponsorTier,
+            impresiones: null == impresiones
+                ? _value.impresiones
+                : impresiones // ignore: cast_nullable_to_non_nullable
+                      as int,
+            clicsDetalle: null == clicsDetalle
+                ? _value.clicsDetalle
+                : clicsDetalle // ignore: cast_nullable_to_non_nullable
+                      as int,
+            intentosUnirse: null == intentosUnirse
+                ? _value.intentosUnirse
+                : intentosUnirse // ignore: cast_nullable_to_non_nullable
+                      as int,
+            conversiones: null == conversiones
+                ? _value.conversiones
+                : conversiones // ignore: cast_nullable_to_non_nullable
+                      as int,
+            organizadorRol: null == organizadorRol
+                ? _value.organizadorRol
+                : organizadorRol // ignore: cast_nullable_to_non_nullable
+                      as UserRole,
           )
           as $Val,
     );
@@ -318,8 +395,18 @@ abstract class _$$PlanModelImplCopyWith<$Res>
     List<String> interesesRelacionados,
     bool esPublico,
     bool requiereAprobacion,
+    int? edadMinima,
+    int? edadMaxima,
     int vistas,
     double puntuacionPromedio,
+    bool esDestacado,
+    DateTime? fechaFinDestacado,
+    SponsorTier tipoDestacado,
+    int impresiones,
+    int clicsDetalle,
+    int intentosUnirse,
+    int conversiones,
+    UserRole organizadorRol,
   });
 }
 
@@ -365,8 +452,18 @@ class __$$PlanModelImplCopyWithImpl<$Res>
     Object? interesesRelacionados = null,
     Object? esPublico = null,
     Object? requiereAprobacion = null,
+    Object? edadMinima = freezed,
+    Object? edadMaxima = freezed,
     Object? vistas = null,
     Object? puntuacionPromedio = null,
+    Object? esDestacado = null,
+    Object? fechaFinDestacado = freezed,
+    Object? tipoDestacado = null,
+    Object? impresiones = null,
+    Object? clicsDetalle = null,
+    Object? intentosUnirse = null,
+    Object? conversiones = null,
+    Object? organizadorRol = null,
   }) {
     return _then(
       _$PlanModelImpl(
@@ -482,6 +579,14 @@ class __$$PlanModelImplCopyWithImpl<$Res>
             ? _value.requiereAprobacion
             : requiereAprobacion // ignore: cast_nullable_to_non_nullable
                   as bool,
+        edadMinima: freezed == edadMinima
+            ? _value.edadMinima
+            : edadMinima // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        edadMaxima: freezed == edadMaxima
+            ? _value.edadMaxima
+            : edadMaxima // ignore: cast_nullable_to_non_nullable
+                  as int?,
         vistas: null == vistas
             ? _value.vistas
             : vistas // ignore: cast_nullable_to_non_nullable
@@ -490,6 +595,38 @@ class __$$PlanModelImplCopyWithImpl<$Res>
             ? _value.puntuacionPromedio
             : puntuacionPromedio // ignore: cast_nullable_to_non_nullable
                   as double,
+        esDestacado: null == esDestacado
+            ? _value.esDestacado
+            : esDestacado // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        fechaFinDestacado: freezed == fechaFinDestacado
+            ? _value.fechaFinDestacado
+            : fechaFinDestacado // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        tipoDestacado: null == tipoDestacado
+            ? _value.tipoDestacado
+            : tipoDestacado // ignore: cast_nullable_to_non_nullable
+                  as SponsorTier,
+        impresiones: null == impresiones
+            ? _value.impresiones
+            : impresiones // ignore: cast_nullable_to_non_nullable
+                  as int,
+        clicsDetalle: null == clicsDetalle
+            ? _value.clicsDetalle
+            : clicsDetalle // ignore: cast_nullable_to_non_nullable
+                  as int,
+        intentosUnirse: null == intentosUnirse
+            ? _value.intentosUnirse
+            : intentosUnirse // ignore: cast_nullable_to_non_nullable
+                  as int,
+        conversiones: null == conversiones
+            ? _value.conversiones
+            : conversiones // ignore: cast_nullable_to_non_nullable
+                  as int,
+        organizadorRol: null == organizadorRol
+            ? _value.organizadorRol
+            : organizadorRol // ignore: cast_nullable_to_non_nullable
+                  as UserRole,
       ),
     );
   }
@@ -527,8 +664,18 @@ class _$PlanModelImpl extends _PlanModel {
     final List<String> interesesRelacionados = const [],
     this.esPublico = true,
     this.requiereAprobacion = false,
+    this.edadMinima,
+    this.edadMaxima,
     this.vistas = 0,
     this.puntuacionPromedio = 0.0,
+    this.esDestacado = false,
+    this.fechaFinDestacado,
+    this.tipoDestacado = SponsorTier.none,
+    this.impresiones = 0,
+    this.clicsDetalle = 0,
+    this.intentosUnirse = 0,
+    this.conversiones = 0,
+    this.organizadorRol = UserRole.usuario,
   }) : _participantesIds = participantesIds,
        _listaEsperaIds = listaEsperaIds,
        _interesesRelacionados = interesesRelacionados,
@@ -640,17 +787,50 @@ class _$PlanModelImpl extends _PlanModel {
   @override
   @JsonKey()
   final bool requiereAprobacion;
-  // Métricas
+  // Restricciones de edad
+  @override
+  final int? edadMinima;
+  // Edad minima para participar (ej: 18)
+  @override
+  final int? edadMaxima;
+  // Edad maxima para participar (ej: 30)
+  // Metricas basicas
   @override
   @JsonKey()
   final int vistas;
   @override
   @JsonKey()
   final double puntuacionPromedio;
+  // === PLANES DESTACADOS (solo negocios) ===
+  @override
+  @JsonKey()
+  final bool esDestacado;
+  @override
+  final DateTime? fechaFinDestacado;
+  @override
+  @JsonKey()
+  final SponsorTier tipoDestacado;
+  // === METRICAS AVANZADAS ===
+  @override
+  @JsonKey()
+  final int impresiones;
+  @override
+  @JsonKey()
+  final int clicsDetalle;
+  @override
+  @JsonKey()
+  final int intentosUnirse;
+  @override
+  @JsonKey()
+  final int conversiones;
+  // === ROL DEL ORGANIZADOR ===
+  @override
+  @JsonKey()
+  final UserRole organizadorRol;
 
   @override
   String toString() {
-    return 'PlanModel(id: $id, titulo: $titulo, descripcion: $descripcion, imagenBase64: $imagenBase64, categoria: $categoria, estado: $estado, organizadorId: $organizadorId, organizadorNombre: $organizadorNombre, organizadorFoto: $organizadorFoto, organizadorReputacion: $organizadorReputacion, fechaHora: $fechaHora, fechaCreacion: $fechaCreacion, duracionMinutos: $duracionMinutos, ciudad: $ciudad, ubicacionNombre: $ubicacionNombre, latitud: $latitud, longitud: $longitud, capacidadMaxima: $capacidadMaxima, capacidadActual: $capacidadActual, participantesIds: $participantesIds, listaEsperaIds: $listaEsperaIds, nivelEnergia: $nivelEnergia, tipoPrecio: $tipoPrecio, precio: $precio, moneda: $moneda, interesesRelacionados: $interesesRelacionados, esPublico: $esPublico, requiereAprobacion: $requiereAprobacion, vistas: $vistas, puntuacionPromedio: $puntuacionPromedio)';
+    return 'PlanModel(id: $id, titulo: $titulo, descripcion: $descripcion, imagenBase64: $imagenBase64, categoria: $categoria, estado: $estado, organizadorId: $organizadorId, organizadorNombre: $organizadorNombre, organizadorFoto: $organizadorFoto, organizadorReputacion: $organizadorReputacion, fechaHora: $fechaHora, fechaCreacion: $fechaCreacion, duracionMinutos: $duracionMinutos, ciudad: $ciudad, ubicacionNombre: $ubicacionNombre, latitud: $latitud, longitud: $longitud, capacidadMaxima: $capacidadMaxima, capacidadActual: $capacidadActual, participantesIds: $participantesIds, listaEsperaIds: $listaEsperaIds, nivelEnergia: $nivelEnergia, tipoPrecio: $tipoPrecio, precio: $precio, moneda: $moneda, interesesRelacionados: $interesesRelacionados, esPublico: $esPublico, requiereAprobacion: $requiereAprobacion, edadMinima: $edadMinima, edadMaxima: $edadMaxima, vistas: $vistas, puntuacionPromedio: $puntuacionPromedio, esDestacado: $esDestacado, fechaFinDestacado: $fechaFinDestacado, tipoDestacado: $tipoDestacado, impresiones: $impresiones, clicsDetalle: $clicsDetalle, intentosUnirse: $intentosUnirse, conversiones: $conversiones, organizadorRol: $organizadorRol)';
   }
 
   @override
@@ -713,9 +893,29 @@ class _$PlanModelImpl extends _PlanModel {
                 other.esPublico == esPublico) &&
             (identical(other.requiereAprobacion, requiereAprobacion) ||
                 other.requiereAprobacion == requiereAprobacion) &&
+            (identical(other.edadMinima, edadMinima) ||
+                other.edadMinima == edadMinima) &&
+            (identical(other.edadMaxima, edadMaxima) ||
+                other.edadMaxima == edadMaxima) &&
             (identical(other.vistas, vistas) || other.vistas == vistas) &&
             (identical(other.puntuacionPromedio, puntuacionPromedio) ||
-                other.puntuacionPromedio == puntuacionPromedio));
+                other.puntuacionPromedio == puntuacionPromedio) &&
+            (identical(other.esDestacado, esDestacado) ||
+                other.esDestacado == esDestacado) &&
+            (identical(other.fechaFinDestacado, fechaFinDestacado) ||
+                other.fechaFinDestacado == fechaFinDestacado) &&
+            (identical(other.tipoDestacado, tipoDestacado) ||
+                other.tipoDestacado == tipoDestacado) &&
+            (identical(other.impresiones, impresiones) ||
+                other.impresiones == impresiones) &&
+            (identical(other.clicsDetalle, clicsDetalle) ||
+                other.clicsDetalle == clicsDetalle) &&
+            (identical(other.intentosUnirse, intentosUnirse) ||
+                other.intentosUnirse == intentosUnirse) &&
+            (identical(other.conversiones, conversiones) ||
+                other.conversiones == conversiones) &&
+            (identical(other.organizadorRol, organizadorRol) ||
+                other.organizadorRol == organizadorRol));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -750,8 +950,18 @@ class _$PlanModelImpl extends _PlanModel {
     const DeepCollectionEquality().hash(_interesesRelacionados),
     esPublico,
     requiereAprobacion,
+    edadMinima,
+    edadMaxima,
     vistas,
     puntuacionPromedio,
+    esDestacado,
+    fechaFinDestacado,
+    tipoDestacado,
+    impresiones,
+    clicsDetalle,
+    intentosUnirse,
+    conversiones,
+    organizadorRol,
   ]);
 
   /// Create a copy of PlanModel
@@ -798,8 +1008,18 @@ abstract class _PlanModel extends PlanModel {
     final List<String> interesesRelacionados,
     final bool esPublico,
     final bool requiereAprobacion,
+    final int? edadMinima,
+    final int? edadMaxima,
     final int vistas,
     final double puntuacionPromedio,
+    final bool esDestacado,
+    final DateTime? fechaFinDestacado,
+    final SponsorTier tipoDestacado,
+    final int impresiones,
+    final int clicsDetalle,
+    final int intentosUnirse,
+    final int conversiones,
+    final UserRole organizadorRol,
   }) = _$PlanModelImpl;
   const _PlanModel._() : super._();
 
@@ -861,11 +1081,32 @@ abstract class _PlanModel extends PlanModel {
   @override
   bool get esPublico;
   @override
-  bool get requiereAprobacion; // Métricas
+  bool get requiereAprobacion; // Restricciones de edad
+  @override
+  int? get edadMinima; // Edad minima para participar (ej: 18)
+  @override
+  int? get edadMaxima; // Edad maxima para participar (ej: 30)
+  // Metricas basicas
   @override
   int get vistas;
   @override
-  double get puntuacionPromedio;
+  double get puntuacionPromedio; // === PLANES DESTACADOS (solo negocios) ===
+  @override
+  bool get esDestacado;
+  @override
+  DateTime? get fechaFinDestacado;
+  @override
+  SponsorTier get tipoDestacado; // === METRICAS AVANZADAS ===
+  @override
+  int get impresiones;
+  @override
+  int get clicsDetalle;
+  @override
+  int get intentosUnirse;
+  @override
+  int get conversiones; // === ROL DEL ORGANIZADOR ===
+  @override
+  UserRole get organizadorRol;
 
   /// Create a copy of PlanModel
   /// with the given fields replaced by the non-null parameter values.

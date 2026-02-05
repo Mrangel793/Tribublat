@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:myapp/src/common/widgets/tribu_fab.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import '../controllers/feed_controller.dart';
 import '../widgets/feed_header.dart';
 import '../widgets/filter_chips_row.dart';
 import '../widgets/feed_tab_bar.dart';
 import '../widgets/plan_card.dart';
+import '../widgets/advanced_filters_sheet.dart';
 
 /// Pantalla principal del feed de planes
 class FeedScreen extends ConsumerStatefulWidget {
@@ -56,20 +56,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     await ref.read(feedControllerProvider.notifier).refresh();
   }
 
-  void _onCreatePlan() {
-    context.push('/create-plan');
-  }
-
-  void _onMenuTap() {
-    // TODO: Abrir drawer o menú
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Menu - Proximamente'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   void _onProfileTap() {
     // TODO: Navegar a perfil
     ScaffoldMessenger.of(context).showSnackBar(
@@ -78,6 +64,26 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _showAdvancedFilters() async {
+    final state = ref.read(feedControllerProvider);
+    final filters = await showAdvancedFiltersSheet(
+      context: context,
+      selectedCity: state.selectedCity,
+      selectedCategory: state.selectedCategory,
+      selectedAgeRange: state.selectedAgeRange,
+      filterByRestriction: state.filterByPlanRestriction,
+    );
+
+    if (filters != null) {
+      ref.read(feedControllerProvider.notifier).applyFilters(
+        city: filters.city,
+        category: filters.category,
+        ageRange: filters.ageRange,
+        planRestriction: filters.filterByRestriction,
+      );
+    }
   }
 
   @override
@@ -120,9 +126,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
             FeedHeader(
               searchController: _searchController,
               onSearch: _onSearch,
-              onMenuTap: _onMenuTap,
               onProfileTap: _onProfileTap,
+              onFilterTap: _showAdvancedFilters,
               userPhoto: state.currentUser?.foto,
+              activeFiltersCount: state.activeFiltersCount,
             ),
 
             const SizedBox(height: 8),
@@ -145,7 +152,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
           ],
         ),
       ),
-      floatingActionButton: TribuFab(onPressed: _onCreatePlan),
     );
   }
 
@@ -179,13 +185,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
               plan: plan,
               matchPercentage: matchScore,
               onTap: () {
-                // TODO: Navegar a detalle del plan
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Ver plan: ${plan.titulo}'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                context.push('/plan/${plan.id}');
               },
               onJoin: () {
                 if (controller.isUserInPlan(plan)) {
@@ -266,21 +266,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _onCreatePlan,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9B59B6),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              icon: const Icon(Icons.add),
-              label: Text(
-                'Crear un plan',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            const SizedBox(height: 16),
+            Text(
+              'Toca + para crear un plan',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: const Color(0xFF9B59B6),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
