@@ -29,7 +29,8 @@ dependencies:
   simple_animations: ^5.2.0
   flutter_svg: ^2.0.10+1
   # Profile setup dependencies
-  google_places_flutter: ^2.1.1
+  http: ^1.2.0
+  # google_places_flutter: ^2.1.1  # Reemplazado por api-colombia.com
   image_picker: ^1.1.2
   image_cropper: ^8.0.2
   flutter_image_compress: ^2.2.0
