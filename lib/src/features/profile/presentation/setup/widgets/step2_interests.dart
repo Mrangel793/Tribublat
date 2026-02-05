@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:myapp/src/features/profile/presentation/setup/controllers/profile_setup_controller.dart';
+import 'package:myapp/src/features/user/domain/interests_constants.dart';
 
 class Step2Interests extends HookConsumerWidget {
   const Step2Interests({super.key});
@@ -14,8 +15,8 @@ class Step2Interests extends HookConsumerWidget {
     final searchController = useTextEditingController();
 
     final filteredInterests = state.busquedaInteres.isEmpty
-        ? InterestConstants.interests
-        : InterestConstants.search(state.busquedaInteres);
+        ? InterestsConstants.allInterests
+        : InterestsConstants.searchInterests(state.busquedaInteres);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,15 +200,15 @@ class Step2Interests extends HookConsumerWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: state.interesesSeleccionados.map((id) {
-                    final interest = InterestConstants.interests
-                        .firstWhere((i) => i.id == id);
+                    final interest = InterestsConstants.getInterestById(id);
+                    if (interest == null) return const SizedBox.shrink();
                     return Chip(
                       label: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(interest.emoji),
                           const SizedBox(width: 4),
-                          Text(interest.nombre),
+                          Text(interest.name),
                         ],
                       ),
                       deleteIcon: const Icon(Icons.close, size: 16),
@@ -235,7 +236,7 @@ class Step2Interests extends HookConsumerWidget {
 }
 
 class _InterestChip extends StatelessWidget {
-  final InterestInfo interest;
+  final Interest interest;
   final bool isSelected;
   final bool canSelect;
   final VoidCallback onTap;
@@ -291,7 +292,7 @@ class _InterestChip extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  interest.nombre,
+                  interest.name,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

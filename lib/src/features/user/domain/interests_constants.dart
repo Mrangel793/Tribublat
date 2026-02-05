@@ -7,6 +7,7 @@ class Interest {
   final String description;
   final IconData icon;
   final Color color;
+  final String emoji;
 
   const Interest({
     required this.id,
@@ -14,6 +15,7 @@ class Interest {
     required this.description,
     required this.icon,
     required this.color,
+    this.emoji = '',
   });
 
   @override
@@ -34,70 +36,160 @@ class InterestsConstants {
       name: 'Deportes',
       description: 'Actividades físicas, fitness y deportes',
       icon: Icons.sports_soccer,
-      color: Color(0xFF4ECDC4), // Teal
+      color: Color(0xFF4ECDC4),
+      emoji: '⚽',
     ),
     Interest(
       id: 'cultura',
       name: 'Cultura',
       description: 'Museos, exposiciones y eventos culturales',
       icon: Icons.museum,
-      color: Color(0xFF95E1D3), // Teal claro
+      color: Color(0xFF95E1D3),
+      emoji: '🏛️',
     ),
     Interest(
       id: 'gastronomia',
       name: 'Gastronomía',
       description: 'Restaurantes, cocina y experiencias culinarias',
       icon: Icons.restaurant,
-      color: Color(0xFFFF6B9D), // Rosa
+      color: Color(0xFFFF6B9D),
+      emoji: '🍽️',
     ),
     Interest(
       id: 'vida_nocturna',
       name: 'Vida Nocturna',
       description: 'Bares, discotecas y eventos nocturnos',
       icon: Icons.nightlife,
-      color: Color(0xFFC06BFF), // Púrpura
+      color: Color(0xFFC06BFF),
+      emoji: '🌙',
     ),
     Interest(
       id: 'naturaleza',
       name: 'Naturaleza',
       description: 'Senderismo, camping y actividades al aire libre',
       icon: Icons.nature,
-      color: Color(0xFF55E1D5), // Teal brillante
+      color: Color(0xFF55E1D5),
+      emoji: '🌿',
     ),
     Interest(
       id: 'tecnologia',
       name: 'Tecnología',
       description: 'Gadgets, innovación y eventos tech',
       icon: Icons.computer,
-      color: Color(0xFF6C5CE7), // Azul púrpura
+      color: Color(0xFF6C5CE7),
+      emoji: '💻',
     ),
     Interest(
       id: 'arte',
       name: 'Arte',
       description: 'Galerías, pintura, escultura y arte visual',
       icon: Icons.palette,
-      color: Color(0xFFFD79A8), // Rosa pastel
+      color: Color(0xFFFD79A8),
+      emoji: '🎨',
     ),
     Interest(
       id: 'musica',
       name: 'Música',
       description: 'Conciertos, festivales y eventos musicales',
       icon: Icons.music_note,
-      color: Color(0xFFFAB1A0), // Coral
+      color: Color(0xFFFAB1A0),
+      emoji: '🎵',
     ),
     Interest(
       id: 'cine',
       name: 'Cine',
       description: 'Películas, series y eventos cinematográficos',
       icon: Icons.movie,
-      color: Color(0xFF74B9FF), // Azul claro
+      color: Color(0xFF74B9FF),
+      emoji: '🎬',
     ),
     Interest(
       id: 'viajes',
       name: 'Viajes',
       description: 'Explorar nuevos lugares y culturas',
       icon: Icons.flight,
-      color: Color(0xFFA29BFE), // Lavanda
+      color: Color(0xFFA29BFE),
+      emoji: '✈️',
+    ),
+    Interest(
+      id: 'gaming',
+      name: 'Gaming',
+      description: 'Videojuegos y comunidad gamer',
+      icon: Icons.sports_esports,
+      color: Color(0xFF00B894),
+      emoji: '🎮',
+    ),
+    Interest(
+      id: 'lectura',
+      name: 'Lectura',
+      description: 'Libros, clubes de lectura y literatura',
+      icon: Icons.menu_book,
+      color: Color(0xFF636E72),
+      emoji: '📚',
+    ),
+    Interest(
+      id: 'fitness',
+      name: 'Fitness',
+      description: 'Gimnasio, crossfit y entrenamiento',
+      icon: Icons.fitness_center,
+      color: Color(0xFFE17055),
+      emoji: '💪',
+    ),
+    Interest(
+      id: 'fotografia',
+      name: 'Fotografía',
+      description: 'Fotografía artística y profesional',
+      icon: Icons.camera_alt,
+      color: Color(0xFF00CEC9),
+      emoji: '📷',
+    ),
+    Interest(
+      id: 'cocina',
+      name: 'Cocina',
+      description: 'Cocinar, recetas y gastronomía casera',
+      icon: Icons.kitchen,
+      color: Color(0xFFFF7675),
+      emoji: '👨‍🍳',
+    ),
+    Interest(
+      id: 'mascotas',
+      name: 'Mascotas',
+      description: 'Amantes de los animales y mascotas',
+      icon: Icons.pets,
+      color: Color(0xFFFDCB6E),
+      emoji: '🐕',
+    ),
+    Interest(
+      id: 'yoga',
+      name: 'Yoga',
+      description: 'Yoga, meditación y bienestar',
+      icon: Icons.self_improvement,
+      color: Color(0xFF81ECEC),
+      emoji: '🧘',
+    ),
+    Interest(
+      id: 'baile',
+      name: 'Baile',
+      description: 'Baile, danza y ritmos latinos',
+      icon: Icons.nightlife,
+      color: Color(0xFFE84393),
+      emoji: '💃',
+    ),
+    Interest(
+      id: 'senderismo',
+      name: 'Senderismo',
+      description: 'Caminatas, montañismo y naturaleza',
+      icon: Icons.hiking,
+      color: Color(0xFF55A3FF),
+      emoji: '🥾',
+    ),
+    Interest(
+      id: 'cafe',
+      name: 'Café',
+      description: 'Cultura del café y cafeterías',
+      icon: Icons.coffee,
+      color: Color(0xFFA0522D),
+      emoji: '☕',
     ),
   ];
 

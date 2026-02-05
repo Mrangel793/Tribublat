@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/features/plans/domain/city_constants.dart';
 import 'package:myapp/src/features/user/data/user_repository.dart';
+import 'package:myapp/src/features/user/domain/interests_constants.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
 
 part 'profile_setup_controller.freezed.dart';
@@ -79,208 +81,8 @@ class ProfileSetupState with _$ProfileSetupState {
   }
 }
 
-/// Lista de intereses disponibles
-class InterestInfo {
-  final String id;
-  final String nombre;
-  final String emoji;
-
-  const InterestInfo({
-    required this.id,
-    required this.nombre,
-    required this.emoji,
-  });
-}
-
-/// Constantes de intereses
-class InterestConstants {
-  static const List<InterestInfo> interests = [
-    InterestInfo(id: 'gastronomia', nombre: 'Gastronomía', emoji: '🍽️'),
-    InterestInfo(id: 'deportes', nombre: 'Deportes', emoji: '⚽'),
-    InterestInfo(id: 'cultura', nombre: 'Cultura', emoji: '🏛️'),
-    InterestInfo(id: 'vidaNocturna', nombre: 'Vida Nocturna', emoji: '🌙'),
-    InterestInfo(id: 'naturaleza', nombre: 'Naturaleza', emoji: '🌿'),
-    InterestInfo(id: 'tecnologia', nombre: 'Tecnología', emoji: '💻'),
-    InterestInfo(id: 'arte', nombre: 'Arte', emoji: '🎨'),
-    InterestInfo(id: 'musica', nombre: 'Música', emoji: '🎵'),
-    InterestInfo(id: 'cine', nombre: 'Cine', emoji: '🎬'),
-    InterestInfo(id: 'viajes', nombre: 'Viajes', emoji: '✈️'),
-    InterestInfo(id: 'gaming', nombre: 'Gaming', emoji: '🎮'),
-    InterestInfo(id: 'lectura', nombre: 'Lectura', emoji: '📚'),
-    InterestInfo(id: 'fitness', nombre: 'Fitness', emoji: '💪'),
-    InterestInfo(id: 'fotografia', nombre: 'Fotografía', emoji: '📷'),
-    InterestInfo(id: 'cocina', nombre: 'Cocina', emoji: '👨‍🍳'),
-    InterestInfo(id: 'mascotas', nombre: 'Mascotas', emoji: '🐕'),
-    InterestInfo(id: 'yoga', nombre: 'Yoga', emoji: '🧘'),
-    InterestInfo(id: 'baile', nombre: 'Baile', emoji: '💃'),
-    InterestInfo(id: 'senderismo', nombre: 'Senderismo', emoji: '🥾'),
-    InterestInfo(id: 'cafe', nombre: 'Café', emoji: '☕'),
-  ];
-
-  static List<InterestInfo> search(String query) {
-    if (query.isEmpty) return interests;
-    final queryLower = query.toLowerCase();
-    return interests
-        .where((i) => i.nombre.toLowerCase().contains(queryLower))
-        .toList();
-  }
-}
-
-/// Ciudades de Colombia para autocompletado
-class CityConstants {
-  static const List<String> colombianCities = [
-    // Capitales y ciudades principales
-    'Bogotá',
-    'Medellín',
-    'Cali',
-    'Barranquilla',
-    'Cartagena',
-    'Bucaramanga',
-    'Cúcuta',
-    'Pereira',
-    'Santa Marta',
-    'Ibagué',
-    'Manizales',
-    'Villavicencio',
-    'Pasto',
-    'Montería',
-    'Neiva',
-    'Armenia',
-    'Valledupar',
-    'Popayán',
-    'Sincelejo',
-    'Tunja',
-    'Florencia',
-    'Riohacha',
-    'Quibdó',
-    'Yopal',
-    'Mocoa',
-    'Leticia',
-    'Mitú',
-    'Puerto Carreño',
-    'Inírida',
-    'San José del Guaviare',
-    // Santander
-    'Piedecuesta',
-    'Floridablanca',
-    'Girón',
-    'Barrancabermeja',
-    'San Gil',
-    'Socorro',
-    'Barbosa',
-    'Lebrija',
-    // Antioquia
-    'Envigado',
-    'Itagüí',
-    'Bello',
-    'Rionegro',
-    'Sabaneta',
-    'La Estrella',
-    'Copacabana',
-    'Apartadó',
-    'Turbo',
-    'Caucasia',
-    // Cundinamarca
-    'Soacha',
-    'Zipaquirá',
-    'Facatativá',
-    'Chía',
-    'Fusagasugá',
-    'Girardot',
-    'Madrid',
-    'Mosquera',
-    'Funza',
-    'Cajicá',
-    'La Calera',
-    'Cota',
-    // Valle del Cauca
-    'Palmira',
-    'Buenaventura',
-    'Tuluá',
-    'Cartago',
-    'Buga',
-    'Yumbo',
-    'Jamundí',
-    // Atlántico
-    'Soledad',
-    'Malambo',
-    'Sabanalarga',
-    'Puerto Colombia',
-    // Bolívar
-    'Magangué',
-    'Turbaco',
-    'Arjona',
-    // Norte de Santander
-    'Ocaña',
-    'Pamplona',
-    'Villa del Rosario',
-    'Los Patios',
-    // Córdoba
-    'Cereté',
-    'Lorica',
-    'Sahagún',
-    // Tolima
-    'Espinal',
-    'Melgar',
-    'Honda',
-    'Mariquita',
-    // Boyacá
-    'Duitama',
-    'Sogamoso',
-    'Chiquinquirá',
-    'Paipa',
-    // Meta
-    'Acacías',
-    'Granada',
-    // Risaralda
-    'Dosquebradas',
-    'Santa Rosa de Cabal',
-    // Caldas
-    'La Dorada',
-    'Chinchiná',
-    // Huila
-    'Pitalito',
-    'Garzón',
-    // Nariño
-    'Tumaco',
-    'Ipiales',
-    // Magdalena
-    'Ciénaga',
-    'Fundación',
-    // Cesar
-    'Aguachica',
-    'Codazzi',
-    // Cauca
-    'Santander de Quilichao',
-    // Quindío
-    'Calarcá',
-    'La Tebaida',
-    // Casanare
-    'Aguazul',
-    'Tauramena',
-    // Sucre
-    'Corozal',
-    // La Guajira
-    'Maicao',
-    'Uribia',
-    // Arauca
-    'Arauca',
-    'Saravena',
-    // Putumayo
-    'Puerto Asís',
-    // Caquetá
-    'San Vicente del Caguán',
-  ];
-
-  static List<String> search(String query) {
-    if (query.isEmpty) return [];
-    final queryLower = query.toLowerCase();
-    return colombianCities
-        .where((c) => c.toLowerCase().contains(queryLower))
-        .take(5)
-        .toList();
-  }
-}
+// Las constantes de intereses se importan de InterestsConstants
+// Las constantes de ciudades se importan de CityConstants
 
 /// Controlador para configuración de perfil
 class ProfileSetupController extends StateNotifier<ProfileSetupState> {
@@ -321,7 +123,7 @@ class ProfileSetupController extends StateNotifier<ProfileSetupState> {
   void setCiudadQuery(String value) {
     state = state.copyWith(
       ciudadQuery: value,
-      ciudadesSugeridas: CityConstants.search(value),
+      ciudadesSugeridas: value.isEmpty ? [] : CityConstants.searchCities(value).take(5).toList(),
     );
   }
 
