@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:myapp/src/features/auth/provider/auth_provider.dart';
-import 'package:myapp/src/features/profile/presentation/setup/controllers/profile_setup_controller.dart';
 import 'package:myapp/src/features/user/data/user_repository.dart';
+import 'package:myapp/src/features/user/domain/interests_constants.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
 import 'package:myapp/src/core/permissions/user_permission_extensions.dart';
 
@@ -633,9 +633,7 @@ class ProfileScreen extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: interests.map((interestId) {
-                final interest = InterestConstants.interests
-                    .where((i) => i.id == interestId)
-                    .firstOrNull;
+                final interest = InterestsConstants.getInterestById(interestId);
 
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -660,7 +658,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        interest?.nombre ?? interestId,
+                        interest?.name ?? interestId,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,

@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:myapp/src/features/plans/domain/city_constants.dart';
 import 'package:myapp/src/features/profile/presentation/setup/controllers/profile_setup_controller.dart';
 import 'package:myapp/src/features/profile/profile_screen.dart';
 import 'package:myapp/src/features/user/data/user_repository.dart';
+import 'package:myapp/src/features/user/domain/interests_constants.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -225,7 +227,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             onChanged: (value) {
               _markAsChanged();
               setState(() {
-                _ciudadesSugeridas = CityConstants.search(value);
+                _ciudadesSugeridas = CityConstants.searchCities(value);
               });
             },
             decoration: _inputDecoration('Tu ciudad'),
@@ -476,7 +478,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   Widget _buildInterestsTab() {
-    final filteredInterests = InterestConstants.interests;
+    final filteredInterests = InterestsConstants.allInterests;
 
     return Column(
       children: [
@@ -555,7 +557,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          interest.nombre,
+                          interest.name,
                           style: GoogleFonts.inter(
                             fontWeight: FontWeight.w500,
                             color: isSelected ? Colors.white : const Color(0xFF2D3748),
