@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
 import 'package:myapp/src/features/plans/presentation/create/widgets/sponsor_options_widget.dart';
@@ -22,7 +23,7 @@ class Step4Publicar extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Configuracion de privacidad'),
+          _buildSectionTitle('Configuracion de privacidad', Icons.shield),
           const SizedBox(height: 16),
           _buildPrivacyOptions(state, controller),
 
@@ -30,35 +31,47 @@ class Step4Publicar extends ConsumerWidget {
           const SponsorOptionsWidget(),
 
           const SizedBox(height: 24),
-          _buildSectionTitle('Imagen del plan'),
+          _buildSectionTitle('Imagen del plan', Icons.image),
           const SizedBox(height: 8),
           Text(
             'Agrega una imagen para que tu plan sea mas atractivo',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF636E72),
+              color: DarkFeedColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
           _buildImagePicker(context, state.imagenBase64, controller),
           const SizedBox(height: 32),
-          _buildSectionTitle('Vista previa'),
+          _buildSectionTitle('Vista previa', Icons.preview),
           const SizedBox(height: 16),
           _buildPreviewCard(state),
-          const SizedBox(height: 100), // Espacio para el footer
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF2D3436),
-      ),
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return DarkFeedColors.primaryGradient.createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Icon(icon, size: 20, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -66,9 +79,9 @@ class Step4Publicar extends ConsumerWidget {
       CreatePlanState state, CreatePlanController controller) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: DarkFeedColors.borderSubtle),
       ),
       child: Column(
         children: [
@@ -79,7 +92,11 @@ class Step4Publicar extends ConsumerWidget {
             value: state.esPublico,
             onChanged: controller.setEsPublico,
           ),
-          const Divider(height: 1, indent: 56),
+          Divider(
+            height: 1,
+            indent: 56,
+            color: DarkFeedColors.borderSubtle.withOpacity(0.5),
+          ),
           _buildPrivacyTile(
             icon: Icons.approval,
             title: 'Requiere aprobacion',
@@ -106,10 +123,16 @@ class Step4Publicar extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF9B59B6).withAlpha(26),
+              color: DarkFeedColors.gradientViolet.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF9B59B6), size: 22),
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return DarkFeedColors.primaryGradient.createShader(bounds);
+              },
+              blendMode: BlendMode.srcIn,
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -121,14 +144,14 @@ class Step4Publicar extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                 ),
                 Text(
                   subtitle,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: const Color(0xFF636E72),
+                    color: DarkFeedColors.textSecondary,
                   ),
                 ),
               ],
@@ -137,7 +160,7 @@ class Step4Publicar extends ConsumerWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF9B59B6),
+            activeColor: DarkFeedColors.gradientOrange,
           ),
         ],
       ),
@@ -157,12 +180,15 @@ class Step4Publicar extends ConsumerWidget {
         height: 200,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: hasImage ? null : const Color(0xFFF8F9FA),
+          color: hasImage
+              ? null
+              : DarkFeedColors.cardBackground.withOpacity(0.6),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: hasImage ? const Color(0xFF9B59B6) : const Color(0xFFE0E0E0),
+            color: hasImage
+                ? DarkFeedColors.gradientOrange
+                : DarkFeedColors.borderSubtle,
             width: hasImage ? 2 : 1,
-            style: hasImage ? BorderStyle.solid : BorderStyle.solid,
           ),
           image: hasImage
               ? DecorationImage(
@@ -182,7 +208,7 @@ class Step4Publicar extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(128),
+                          color: Colors.black.withOpacity(0.6),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -202,13 +228,14 @@ class Step4Publicar extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(128),
+                        color: Colors.black.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.edit, color: Colors.white, size: 16),
+                          const Icon(Icons.edit,
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 4),
                           Text(
                             'Cambiar',
@@ -229,22 +256,43 @@ class Step4Publicar extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF9B59B6).withAlpha(26),
+                      gradient: LinearGradient(
+                        colors: [
+                          DarkFeedColors.gradientOrange.withOpacity(0.15),
+                          DarkFeedColors.gradientViolet.withOpacity(0.15),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.add_photo_alternate_outlined,
-                      color: Color(0xFF9B59B6),
-                      size: 40,
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return DarkFeedColors.primaryGradient
+                            .createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: const Icon(
+                        Icons.add_photo_alternate_outlined,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'Agregar imagen',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF9B59B6),
+                  ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return DarkFeedColors.primaryGradient
+                          .createShader(bounds);
+                    },
+                    blendMode: BlendMode.srcIn,
+                    child: Text(
+                      'Agregar imagen',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -252,7 +300,7 @@ class Step4Publicar extends ConsumerWidget {
                     'Toca para seleccionar',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: const Color(0xFF636E72),
+                      color: DarkFeedColors.textSecondary,
                     ),
                   ),
                 ],
@@ -265,6 +313,7 @@ class Step4Publicar extends ConsumerWidget {
       BuildContext context, CreatePlanController controller) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: DarkFeedColors.cardBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -278,7 +327,7 @@ class Step4Publicar extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE0E0E0),
+                  color: DarkFeedColors.borderSubtle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -288,7 +337,7 @@ class Step4Publicar extends ConsumerWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2D3436),
+                  color: DarkFeedColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 20),
@@ -334,19 +383,32 @@ class Step4Publicar extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA),
+          color: DarkFeedColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
+          border: Border.all(color: DarkFeedColors.borderSubtle),
         ),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF9B59B6).withAlpha(26),
+                gradient: LinearGradient(
+                  colors: [
+                    DarkFeedColors.gradientOrange.withOpacity(0.15),
+                    DarkFeedColors.gradientViolet.withOpacity(0.15),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: const Color(0xFF9B59B6), size: 28),
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -354,7 +416,7 @@ class Step4Publicar extends ConsumerWidget {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF2D3436),
+                color: DarkFeedColors.textPrimary,
               ),
             ),
           ],
@@ -389,16 +451,9 @@ class Step4Publicar extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(38),
-            spreadRadius: 2,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: DarkFeedColors.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,13 +463,14 @@ class Step4Publicar extends ConsumerWidget {
             height: 140,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: categoryInfo?.color.withAlpha(50) ??
-                  const Color(0xFFF8F9FA),
+              color: categoryInfo?.color.withOpacity(0.1) ??
+                  DarkFeedColors.surface,
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
               image: state.imagenBase64.isNotEmpty
                   ? DecorationImage(
-                      image: MemoryImage(base64Decode(state.imagenBase64)),
+                      image:
+                          MemoryImage(base64Decode(state.imagenBase64)),
                       fit: BoxFit.cover,
                     )
                   : null,
@@ -424,7 +480,8 @@ class Step4Publicar extends ConsumerWidget {
                     child: Icon(
                       categoryInfo?.icon ?? Icons.event,
                       size: 48,
-                      color: categoryInfo?.color ?? const Color(0xFF9B59B6),
+                      color: categoryInfo?.color.withOpacity(0.5) ??
+                          DarkFeedColors.textSecondary,
                     ),
                   )
                 : null,
@@ -435,13 +492,13 @@ class Step4Publicar extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Categoría badge
+                // Categoria badge
                 if (categoryInfo != null)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: categoryInfo.color.withAlpha(26),
+                      color: categoryInfo.color.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -461,13 +518,15 @@ class Step4Publicar extends ConsumerWidget {
                     ),
                   ),
                 const SizedBox(height: 8),
-                // Título
+                // Titulo
                 Text(
-                  state.titulo.isNotEmpty ? state.titulo : 'Titulo del plan',
+                  state.titulo.isNotEmpty
+                      ? state.titulo
+                      : 'Titulo del plan',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -476,8 +535,9 @@ class Step4Publicar extends ConsumerWidget {
                 // Fecha y hora
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today,
-                        size: 14, color: Color(0xFF636E72)),
+                    Icon(Icons.calendar_today,
+                        size: 14,
+                        color: DarkFeedColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       state.fecha != null
@@ -485,12 +545,13 @@ class Step4Publicar extends ConsumerWidget {
                           : 'Fecha',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: const Color(0xFF636E72),
+                        color: DarkFeedColors.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Icon(Icons.access_time,
-                        size: 14, color: Color(0xFF636E72)),
+                    Icon(Icons.access_time,
+                        size: 14,
+                        color: DarkFeedColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       state.horaInicio != null
@@ -498,16 +559,18 @@ class Step4Publicar extends ConsumerWidget {
                           : 'Hora',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: const Color(0xFF636E72),
+                        color: DarkFeedColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Ubicación
+                // Ubicacion
                 Row(
                   children: [
-                    const Icon(Icons.place, size: 14, color: Color(0xFF636E72)),
+                    Icon(Icons.place,
+                        size: 14,
+                        color: DarkFeedColors.textSecondary),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -518,7 +581,7 @@ class Step4Publicar extends ConsumerWidget {
                                 : 'Ubicacion',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: const Color(0xFF636E72),
+                          color: DarkFeedColors.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -533,15 +596,22 @@ class Step4Publicar extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.group,
-                            size: 16, color: Color(0xFF9B59B6)),
+                        ShaderMask(
+                          shaderCallback: (Rect bounds) {
+                            return DarkFeedColors.primaryGradient
+                                .createShader(bounds);
+                          },
+                          blendMode: BlendMode.srcIn,
+                          child: const Icon(Icons.group,
+                              size: 16, color: Colors.white),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '1/${state.capacidadMaxima} plazas',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF2D3436),
+                            color: DarkFeedColors.textPrimary,
                           ),
                         ),
                       ],
@@ -551,8 +621,8 @@ class Step4Publicar extends ConsumerWidget {
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: state.tieneCosto
-                            ? const Color(0xFFFFB347).withAlpha(26)
-                            : const Color(0xFF4ECDC4).withAlpha(26),
+                            ? DarkFeedColors.warningOrange.withOpacity(0.15)
+                            : DarkFeedColors.greenEmerald.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -563,8 +633,8 @@ class Step4Publicar extends ConsumerWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: state.tieneCosto
-                              ? const Color(0xFFFF9800)
-                              : const Color(0xFF4ECDC4),
+                              ? DarkFeedColors.warningOrange
+                              : DarkFeedColors.greenEmerald,
                         ),
                       ),
                     ),

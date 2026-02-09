@@ -1,190 +1,351 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:myapp/src/common/widgets/base64_image_widget.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 
-/// Header del feed con búsqueda, filtros y avatar
+/// Header del feed con saludo, búsqueda y filtros (dark mode)
 class FeedHeader extends StatelessWidget {
   final TextEditingController searchController;
   final Function(String) onSearch;
-  final VoidCallback onProfileTap;
   final VoidCallback? onFilterTap;
-  final String? userPhoto;
   final int activeFiltersCount;
+  final String? userName;
+  final String? userPhotoBase64;
+  final VoidCallback? onNotificationTap;
+  final VoidCallback? onAvatarTap;
+  final int notificationCount;
 
   const FeedHeader({
     super.key,
     required this.searchController,
     required this.onSearch,
-    required this.onProfileTap,
     this.onFilterTap,
-    this.userPhoto,
     this.activeFiltersCount = 0,
+    this.userName,
+    this.userPhotoBase64,
+    this.onNotificationTap,
+    this.onAvatarTap,
+    this.notificationCount = 0,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      color: DarkFeedColors.background,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Top row: logo, search icon, notification bell, avatar ──
+          _buildTopRow(),
+
+          const SizedBox(height: 16),
+
+          // ── Greeting ──
+          _buildGreeting(),
+
+          const SizedBox(height: 16),
+
+          // ── Search bar ──
+          _buildSearchBar(),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Top row
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildTopRow() {
+    return Row(
+      children: [
+        // Logo "Tribulat" with gradient shader mask
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return const LinearGradient(
+              colors: [
+                DarkFeedColors.gradientOrange,
+                DarkFeedColors.gradientViolet,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Text(
+            'Tribulat',
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white, // gets masked by shader
+            ),
+          ),
+        ),
+
+        const Spacer(),
+
+        // Search icon
+        IconButton(
+          onPressed: () {
+            // Scroll / focus search bar — no-op placeholder
+          },
+          icon: const Icon(
+            Icons.search,
+            color: DarkFeedColors.textSecondary,
+            size: 24,
+          ),
+        ),
+
+        // Notification bell with badge
+        _buildNotificationBell(),
+
+        const SizedBox(width: 8),
+
+        // User avatar with gradient border
+        _buildAvatar(),
+      ],
+    );
+  }
+
+  Widget _buildNotificationBell() {
+    return GestureDetector(
+      onTap: onNotificationTap,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Stack(
+          children: [
+            const Center(
+              child: Icon(
+                Icons.notifications_outlined,
+                color: DarkFeedColors.textSecondary,
+                size: 26,
+              ),
+            ),
+            if (notificationCount > 0)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: DarkFeedColors.greenEmerald,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Center(
+                    child: Text(
+                      notificationCount > 99
+                          ? '99+'
+                          : '$notificationCount',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    ImageProvider? avatarImage;
+    if (userPhotoBase64 != null && userPhotoBase64!.isNotEmpty) {
+      try {
+        final bytes = base64Decode(userPhotoBase64!);
+        avatarImage = MemoryImage(bytes);
+      } catch (_) {
+        avatarImage = null;
+      }
+    }
+
+    return GestureDetector(
+      onTap: onAvatarTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: DarkFeedColors.primaryGradient,
+        ),
+        padding: const EdgeInsets.all(2), // gradient border width
+        child: CircleAvatar(
+          radius: 18,
+          backgroundColor: DarkFeedColors.cardBackground,
+          backgroundImage: avatarImage,
+          child: avatarImage == null
+              ? const Icon(
+                  Icons.person,
+                  color: DarkFeedColors.textSecondary,
+                  size: 20,
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Greeting
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildGreeting() {
+    final displayName = userName ?? 'Explorador';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Hola, $displayName \u{1F44B}',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '\u00BFQu\u00E9 plan tienes hoy?',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: DarkFeedColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Search bar
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildSearchBar() {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: DarkFeedColors.cardBackground,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: DarkFeedColors.borderSubtle),
+      ),
       child: Row(
         children: [
-          // Barra de búsqueda
+          // Text field (expanded)
           Expanded(
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withAlpha(26),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearch,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: DarkFeedColors.textPrimary,
               ),
-              child: TextField(
-                controller: searchController,
-                onChanged: onSearch,
-                style: GoogleFonts.inter(
+              cursorColor: DarkFeedColors.gradientOrange,
+              decoration: InputDecoration(
+                hintText: 'Buscar planes...',
+                hintStyle: GoogleFonts.inter(
                   fontSize: 14,
-                  color: const Color(0xFF2D3436),
+                  color: DarkFeedColors.textSecondary,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Buscar planes...',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFFB2BEC3),
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: Color(0xFF636E72),
-                    size: 20,
-                  ),
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(
-                            Icons.clear,
-                            color: Color(0xFF636E72),
-                            size: 18,
-                          ),
-                          onPressed: () {
-                            searchController.clear();
-                            onSearch('');
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: DarkFeedColors.textSecondary,
+                  size: 20,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 16,
                 ),
               ),
             ),
           ),
 
-          const SizedBox(width: 12),
-
-          // Boton de filtros avanzados
-          if (onFilterTap != null)
+          // Clear button (visible when text is not empty)
+          if (searchController.text.isNotEmpty)
             GestureDetector(
-              onTap: onFilterTap,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: activeFiltersCount > 0
-                      ? const Color(0xFF9B59B6).withOpacity(0.1)
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: activeFiltersCount > 0
-                        ? const Color(0xFF9B59B6)
-                        : Colors.transparent,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withAlpha(26),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Icon(
-                        Icons.tune,
-                        color: activeFiltersCount > 0
-                            ? const Color(0xFF9B59B6)
-                            : const Color(0xFF636E72),
-                        size: 22,
-                      ),
-                    ),
-                    // Badge de filtros activos
-                    if (activeFiltersCount > 0)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF9B59B6),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$activeFiltersCount',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+              onTap: () {
+                searchController.clear();
+                onSearch('');
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Icon(
+                  Icons.close,
+                  color: DarkFeedColors.textSecondary,
+                  size: 18,
                 ),
               ),
             ),
 
-          if (onFilterTap != null) const SizedBox(width: 12),
+          // Filter button with badge
+          if (onFilterTap != null) _buildFilterButton(),
 
-          // Avatar del usuario
-          GestureDetector(
-            onTap: onProfileTap,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF9B59B6).withAlpha(51),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: userPhoto != null && userPhoto!.isNotEmpty
-                  ? Base64CircleAvatar(
-                      base64String: userPhoto!,
-                      radius: 22,
-                    )
-                  : const CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Color(0xFF9B59B6),
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-            ),
-          ),
+          const SizedBox(width: 8),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton() {
+    return GestureDetector(
+      onTap: onFilterTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: activeFiltersCount > 0
+              ? DarkFeedColors.gradientViolet.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: activeFiltersCount > 0
+                ? DarkFeedColors.gradientViolet
+                : DarkFeedColors.borderSubtle,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Icon(
+                Icons.tune,
+                color: activeFiltersCount > 0
+                    ? DarkFeedColors.gradientViolet
+                    : DarkFeedColors.textSecondary,
+                size: 20,
+              ),
+            ),
+            // Active filters badge
+            if (activeFiltersCount > 0)
+              Positioned(
+                top: 2,
+                right: 2,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                    color: DarkFeedColors.gradientViolet,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$activeFiltersCount',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

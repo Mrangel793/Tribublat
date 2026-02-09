@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/src/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:myapp/src/features/auth/presentation/login/login_screen.dart';
+import 'package:myapp/src/features/auth/presentation/welcome/welcome_screen.dart';
+import 'package:myapp/src/features/auth/presentation/register/register_screen.dart';
 import 'package:myapp/src/features/main/main_screen.dart';
 import 'package:myapp/src/features/plans/presentation/create/screens/create_plan_screen.dart';
 import 'package:myapp/src/features/plans/presentation/detail/screens/plan_detail_screen.dart';
 import 'package:myapp/src/features/profile/presentation/edit/edit_profile_screen.dart';
+import 'package:myapp/src/features/profile/presentation/public/public_profile_screen.dart';
 import 'package:myapp/src/features/profile/presentation/setup/screens/profile_setup_screen.dart';
 import 'package:myapp/src/features/splash/splash_screen.dart';
 // Importaciones para modulos de roles
@@ -23,8 +26,16 @@ final appRouter = GoRouter(
       builder: (context, state) => const SplashScreen(),
     ),
     GoRoute(
+      path: '/welcome',
+      builder: (context, state) => const WelcomeScreen(),
+    ),
+    GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
     ),
     GoRoute(
       path: '/',
@@ -60,6 +71,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile/edit',
       builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: '/profile/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return PublicProfileScreen(userId: userId);
+      },
     ),
 
     // === RUTAS DE NEGOCIO (protegidas por rol) ===

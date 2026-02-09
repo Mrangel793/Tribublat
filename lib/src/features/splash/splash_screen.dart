@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/auth/provider/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -44,7 +45,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         if (user != null) {
           context.go('/');
         } else {
-          context.go('/login');
+          context.go('/welcome');
         }
       }
     });
@@ -59,20 +60,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DarkFeedColors.background,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF8F0F8), // Rosa muy claro arriba
-              Color(0xFFF5E6F5), // Rosa lavanda
-              Color(0xFFEDE4F0), // Lavanda claro abajo
-            ],
-          ),
-        ),
+        color: DarkFeedColors.background,
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -89,9 +81,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFE07A5F).withAlpha(60),
+                          color: const Color(0xFFFF8C42).withOpacity(0.3),
                           offset: const Offset(0, 8),
-                          blurRadius: 20,
+                          blurRadius: 30,
+                        ),
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                          offset: const Offset(0, 8),
+                          blurRadius: 30,
                         ),
                       ],
                     ),
@@ -105,13 +102,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   ),
                   const SizedBox(height: 20),
                   // Nombre de la app
-                  Text(
-                    'TribuLat',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 32,
-                      color: const Color(0xFF2D3436),
-                      letterSpacing: 0.5,
+                  ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return const LinearGradient(
+                        colors: [Color(0xFFFF8C42), Color(0xFF8B5CF6)],
+                      ).createShader(bounds);
+                    },
+                    blendMode: BlendMode.srcIn,
+                    child: Text(
+                      'TribuLat',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 32,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                   const Spacer(flex: 2),
@@ -120,7 +125,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     'Conecta. Descubre. Vive.',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: const Color(0xFF636E72),
+                      color: DarkFeedColors.textSecondary,
                       letterSpacing: 0.3,
                     ),
                   ),
@@ -138,12 +143,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 }
 
-/// Indicador de carga circular con gradiente púrpura/rosa
+/// Indicador de carga circular con gradiente naranja/violeta
 class _GradientCircularLoader extends StatefulWidget {
   const _GradientCircularLoader();
 
   @override
-  State<_GradientCircularLoader> createState() => _GradientCircularLoaderState();
+  State<_GradientCircularLoader> createState() =>
+      _GradientCircularLoaderState();
 }
 
 class _GradientCircularLoaderState extends State<_GradientCircularLoader>
@@ -179,10 +185,10 @@ class _GradientCircularLoaderState extends State<_GradientCircularLoader>
               shape: BoxShape.circle,
               gradient: SweepGradient(
                 colors: [
-                  const Color(0xFF9B59B6).withAlpha(0),
-                  const Color(0xFF9B59B6),
-                  const Color(0xFFE91E8C),
-                  const Color(0xFFE91E8C).withAlpha(0),
+                  const Color(0xFFFF8C42).withOpacity(0),
+                  const Color(0xFFFF8C42),
+                  const Color(0xFF8B5CF6),
+                  const Color(0xFF8B5CF6).withOpacity(0),
                 ],
                 stops: const [0.0, 0.3, 0.7, 1.0],
               ),
@@ -193,7 +199,7 @@ class _GradientCircularLoaderState extends State<_GradientCircularLoader>
                 height: 24,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFFF5E6F5), // Mismo color del fondo
+                  color: DarkFeedColors.background,
                 ),
               ),
             ),

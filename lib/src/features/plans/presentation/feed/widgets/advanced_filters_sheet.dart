@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'city_selector.dart';
 import 'age_range_filter.dart';
@@ -126,7 +127,7 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: DarkFeedColors.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -138,7 +139,7 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: DarkFeedColors.borderSubtle,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -150,12 +151,12 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF9B59B6).withOpacity(0.1),
+                    color: DarkFeedColors.gradientViolet.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.tune,
-                    color: Color(0xFF9B59B6),
+                    color: DarkFeedColors.gradientViolet,
                     size: 20,
                   ),
                 ),
@@ -165,19 +166,19 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close),
-                  color: Colors.grey[500],
+                  color: DarkFeedColors.textSecondary,
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: DarkFeedColors.borderSubtle),
           // Content
           Flexible(
             child: SingleChildScrollView(
@@ -216,10 +217,10 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
           // Actions
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
+            decoration: const BoxDecoration(
+              color: DarkFeedColors.surface,
               border: Border(
-                top: BorderSide(color: Colors.grey[200]!),
+                top: BorderSide(color: DarkFeedColors.borderSubtle),
               ),
             ),
             child: SafeArea(
@@ -231,11 +232,11 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
                     child: OutlinedButton(
                       onPressed: _hasActiveFilters ? _clearAll : null,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF636E72),
+                        foregroundColor: DarkFeedColors.textSecondary,
                         side: BorderSide(
                           color: _hasActiveFilters
-                              ? const Color(0xFF636E72)
-                              : Colors.grey[300]!,
+                              ? DarkFeedColors.textSecondary
+                              : DarkFeedColors.borderSubtle,
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -257,7 +258,7 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
                     child: ElevatedButton(
                       onPressed: _apply,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9B59B6),
+                        backgroundColor: DarkFeedColors.gradientOrange,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

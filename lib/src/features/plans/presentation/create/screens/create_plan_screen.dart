@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
 import 'package:myapp/src/features/plans/presentation/create/widgets/step1_basico.dart';
 import 'package:myapp/src/features/plans/presentation/create/widgets/step2_detalles.dart';
@@ -30,7 +31,8 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
   }
 
   @override
@@ -45,7 +47,6 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
     final state = ref.watch(createPlanControllerProvider);
     final controller = ref.read(createPlanControllerProvider.notifier);
 
-    // Escuchar cambios de paso para animar el PageView
     ref.listen<CreatePlanState>(createPlanControllerProvider, (previous, next) {
       if (previous?.currentStep != next.currentStep) {
         _pageController.animateToPage(
@@ -55,25 +56,30 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
         );
       }
 
-      // Mostrar error si existe
-      if (next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+      if (next.errorMessage != null &&
+          previous?.errorMessage != next.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: Colors.red,
+            content: Text(
+              next.errorMessage!,
+              style: GoogleFonts.inter(color: Colors.white),
+            ),
+            backgroundColor: DarkFeedColors.errorRed,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
         controller.clearError();
       }
 
-      // Mostrar éxito
       if (next.isSuccess && !previous!.isSuccess) {
         _showSuccessDialog();
       }
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: DarkFeedColors.background,
       body: Stack(
         children: [
           Column(
@@ -84,9 +90,6 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                 child: PageView(
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
-                  onPageChanged: (index) {
-                    // Solo actualizar si viene del swipe (no del controller)
-                  },
                   children: const [
                     Step1Basico(),
                     Step2Detalles(),
@@ -97,7 +100,7 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
               ),
             ],
           ),
-          // Footer con botones de navegación
+          // Footer
           Positioned(
             left: 0,
             right: 0,
@@ -115,9 +118,9 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
               numberOfParticles: 30,
               gravity: 0.1,
               colors: const [
-                Color(0xFF9B59B6),
+                DarkFeedColors.gradientOrange,
+                DarkFeedColors.gradientViolet,
                 Color(0xFF4ECDC4),
-                Color(0xFFFFB347),
                 Color(0xFFFF6B9D),
                 Color(0xFF6C5CE7),
               ],
@@ -136,44 +139,48 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
         right: 16,
         bottom: 8,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0D000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+      decoration: BoxDecoration(
+        color: DarkFeedColors.background,
+        border: Border(
+          bottom: BorderSide(
+            color: DarkFeedColors.borderSubtle.withOpacity(0.5),
           ),
-        ],
+        ),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: Color(0xFF2D3436)),
+            icon: const Icon(Icons.close, color: DarkFeedColors.textSecondary),
             onPressed: () => _showExitConfirmation(),
           ),
           Expanded(
             child: Column(
               children: [
-                Text(
-                  'Crear plan',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
+                ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return DarkFeedColors.primaryGradient
+                        .createShader(bounds);
+                  },
+                  blendMode: BlendMode.srcIn,
+                  child: Text(
+                    'Crear plan',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 Text(
                   _stepTitles[currentStep],
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: const Color(0xFF636E72),
+                    color: DarkFeedColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-          // Placeholder para balancear el espacio
           const SizedBox(width: 48),
         ],
       ),
@@ -191,7 +198,7 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
           return Expanded(
             child: Row(
               children: [
-                // Círculo del paso
+                // Circulo del paso
                 GestureDetector(
                   onTap: index < currentStep
                       ? () => ref
@@ -202,14 +209,21 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
+                      gradient: isCompleted || isCurrent
+                          ? DarkFeedColors.primaryGradient
+                          : null,
                       color: isCompleted || isCurrent
-                          ? const Color(0xFF9B59B6)
-                          : const Color(0xFFE0E0E0),
+                          ? null
+                          : DarkFeedColors.surface,
                       shape: BoxShape.circle,
+                      border: isCompleted || isCurrent
+                          ? null
+                          : Border.all(color: DarkFeedColors.borderSubtle),
                     ),
                     child: Center(
                       child: isCompleted
-                          ? const Icon(Icons.check, color: Colors.white, size: 18)
+                          ? const Icon(Icons.check,
+                              color: Colors.white, size: 18)
                           : Text(
                               '${index + 1}',
                               style: GoogleFonts.inter(
@@ -217,22 +231,22 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                                 fontWeight: FontWeight.w600,
                                 color: isCurrent
                                     ? Colors.white
-                                    : const Color(0xFF636E72),
+                                    : DarkFeedColors.textSecondary,
                               ),
                             ),
                     ),
                   ),
                 ),
-                // Línea conectora
+                // Linea conectora
                 if (index < 3)
                   Expanded(
                     child: Container(
                       height: 3,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
-                        color: isCompleted
-                            ? const Color(0xFF9B59B6)
-                            : const Color(0xFFE0E0E0),
+                        gradient:
+                            isCompleted ? DarkFeedColors.primaryGradient : null,
+                        color: isCompleted ? null : DarkFeedColors.surface,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -258,45 +272,55 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(51),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            DarkFeedColors.background.withOpacity(0.0),
+            DarkFeedColors.background.withOpacity(0.9),
+            DarkFeedColors.background,
+          ],
+          stops: const [0.0, 0.3, 0.5],
+        ),
       ),
       child: Row(
         children: [
-          // Botón Atrás
+          // Boton Atras
           if (!isFirstStep)
             Expanded(
-              child: OutlinedButton(
-                onPressed: controller.previousStep,
-                style: OutlinedButton.styleFrom(
+              child: GestureDetector(
+                onTap: controller.previousStep,
+                child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: Color(0xFF9B59B6)),
-                  shape: RoundedRectangleBorder(
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: DarkFeedColors.borderSubtle),
                   ),
-                ),
-                child: Text(
-                  'Atras',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF9B59B6),
+                  child: Center(
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return DarkFeedColors.primaryGradient
+                            .createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: Text(
+                        'Atras',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           if (!isFirstStep) const SizedBox(width: 12),
-          // Botón Siguiente/Publicar
+          // Boton Siguiente/Publicar
           Expanded(
-            flex: isFirstStep ? 1 : 1,
-            child: ElevatedButton(
-              onPressed: canProceed
+            child: GestureDetector(
+              onTap: canProceed
                   ? () {
                       if (isLastStep) {
                         _publishPlan();
@@ -305,33 +329,47 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                       }
                     }
                   : null,
-              style: ElevatedButton.styleFrom(
+              child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: const Color(0xFF9B59B6),
-                disabledBackgroundColor: const Color(0xFFE0E0E0),
-                shape: RoundedRectangleBorder(
+                decoration: BoxDecoration(
+                  gradient: canProceed
+                      ? DarkFeedColors.primaryGradient
+                      : null,
+                  color: canProceed ? null : DarkFeedColors.surface,
                   borderRadius: BorderRadius.circular(30),
+                  boxShadow: canProceed
+                      ? [
+                          BoxShadow(
+                            color: DarkFeedColors.gradientOrange
+                                .withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
                 ),
-                elevation: canProceed ? 4 : 0,
-                shadowColor: const Color(0xFF9B59B6).withAlpha(100),
+                child: Center(
+                  child: state.isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          isLastStep ? 'Publicar plan' : 'Siguiente',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: canProceed
+                                ? Colors.white
+                                : DarkFeedColors.textSecondary,
+                          ),
+                        ),
+                ),
               ),
-              child: state.isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                  : Text(
-                      isLastStep ? 'Publicar plan' : 'Siguiente',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
             ),
           ),
         ],
@@ -352,23 +390,24 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: DarkFeedColors.cardBackground,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icono de éxito
               Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4ECDC4).withAlpha(26),
+                  color: DarkFeedColors.greenEmerald.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.celebration,
-                  color: Color(0xFF4ECDC4),
+                  color: DarkFeedColors.greenEmerald,
                   size: 45,
                 ),
               ),
@@ -378,7 +417,7 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2D3436),
+                  color: DarkFeedColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -386,51 +425,69 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                 'Tu plan ha sido publicado exitosamente.\nLos usuarios ya pueden verlo y unirse.',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: const Color(0xFF636E72),
+                  color: DarkFeedColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              // Botón Ver plan
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.go('/');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF9B59B6),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+              // Boton Ver en feed
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/');
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: DarkFeedColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            DarkFeedColors.gradientOrange.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'Ver en el feed',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                  child: Center(
+                    child: Text(
+                      'Ver en el feed',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              // Botón Crear otro
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ref.read(createPlanControllerProvider.notifier).reset();
-                  },
-                  child: Text(
-                    'Crear otro plan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF9B59B6),
+              // Boton Crear otro
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  ref.read(createPlanControllerProvider.notifier).reset();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return DarkFeedColors.primaryGradient
+                            .createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: Text(
+                        'Crear otro plan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -446,20 +503,22 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: DarkFeedColors.cardBackground,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Salir sin guardar?',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF2D3436),
+            color: DarkFeedColors.textPrimary,
           ),
         ),
         content: Text(
           'Si sales ahora, perderas todo el progreso de tu plan.',
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
           ),
         ),
         actions: [
@@ -469,26 +528,28 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
               'Seguir editando',
               style: GoogleFonts.inter(
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF636E72),
+                color: DarkFeedColors.textSecondary,
               ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
+          GestureDetector(
+            onTap: () {
               Navigator.pop(context);
               context.pop();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
-              shape: RoundedRectangleBorder(
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: DarkFeedColors.errorRed,
                 borderRadius: BorderRadius.circular(20),
               ),
-            ),
-            child: Text(
-              'Salir',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+              child: Text(
+                'Salir',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

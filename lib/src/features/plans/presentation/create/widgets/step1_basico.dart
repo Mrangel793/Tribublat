@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
@@ -18,7 +19,7 @@ class Step1Basico extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Informacion basica'),
+          _buildSectionTitle('Informacion basica', Icons.edit_note),
           const SizedBox(height: 16),
           _buildTextField(
             label: 'Titulo del plan',
@@ -37,15 +38,15 @@ class Step1Basico extends ConsumerWidget {
             maxLength: 300,
           ),
           const SizedBox(height: 24),
-          _buildSectionTitle('Categoria'),
+          _buildSectionTitle('Categoria', Icons.grid_view_rounded),
           const SizedBox(height: 12),
           _buildCategoryGrid(state.categoria, controller.setCategoria),
           const SizedBox(height: 24),
-          _buildSectionTitle('Nivel de energia'),
+          _buildSectionTitle('Nivel de energia', Icons.bolt),
           const SizedBox(height: 12),
           _buildEnergyCards(state.nivelEnergia, controller.setNivelEnergia),
           const SizedBox(height: 24),
-          _buildSectionTitle('Capacidad'),
+          _buildSectionTitle('Capacidad', Icons.group),
           const SizedBox(height: 12),
           _buildCapacityPicker(
             state.capacidadMaxima,
@@ -59,20 +60,32 @@ class Step1Basico extends ConsumerWidget {
             controller.setTieneCosto,
             controller.setPrecio,
           ),
-          const SizedBox(height: 100), // Espacio para el footer
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF2D3436),
-      ),
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return DarkFeedColors.primaryGradient.createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Icon(icon, size: 20, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -91,7 +104,7 @@ class Step1Basico extends ConsumerWidget {
           label,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -101,26 +114,35 @@ class Step1Basico extends ConsumerWidget {
           onChanged: onChanged,
           maxLines: maxLines,
           maxLength: maxLength,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: DarkFeedColors.textPrimary,
+          ),
+          cursorColor: DarkFeedColors.gradientOrange,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFB2BEC3)),
+            hintStyle: GoogleFonts.inter(
+              fontSize: 15,
+              color: DarkFeedColors.textSecondary.withOpacity(0.5),
+            ),
             filled: true,
-            fillColor: const Color(0xFFF8F9FA),
+            fillColor: DarkFeedColors.cardBackground.withOpacity(0.6),
             counterStyle: GoogleFonts.inter(
               fontSize: 12,
-              color: const Color(0xFF636E72),
+              color: DarkFeedColors.textSecondary,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: DarkFeedColors.borderSubtle),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: DarkFeedColors.borderSubtle),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF9B59B6), width: 2),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                  color: DarkFeedColors.gradientOrange, width: 2),
             ),
           ),
         ),
@@ -154,11 +176,12 @@ class Step1Basico extends ConsumerWidget {
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: isSelected
-                  ? category.color.withAlpha(30)
-                  : const Color(0xFFF8F9FA),
-              borderRadius: BorderRadius.circular(12),
+                  ? category.color.withOpacity(0.15)
+                  : DarkFeedColors.cardBackground.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? category.color : const Color(0xFFE0E0E0),
+                color:
+                    isSelected ? category.color : DarkFeedColors.borderSubtle,
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -175,8 +198,9 @@ class Step1Basico extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color:
-                        isSelected ? category.color : const Color(0xFF636E72),
+                    color: isSelected
+                        ? category.color
+                        : DarkFeedColors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
@@ -190,7 +214,8 @@ class Step1Basico extends ConsumerWidget {
     );
   }
 
-  Widget _buildEnergyCards(EnergyLevel selected, Function(EnergyLevel) onSelect) {
+  Widget _buildEnergyCards(
+      EnergyLevel selected, Function(EnergyLevel) onSelect) {
     final energyLevels = [
       _EnergyOption(
         level: EnergyLevel.baja,
@@ -224,14 +249,17 @@ class Step1Basico extends ConsumerWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? option.color.withAlpha(30)
-                    : const Color(0xFFF8F9FA),
+                    ? option.color.withOpacity(0.15)
+                    : DarkFeedColors.cardBackground.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isSelected ? option.color : const Color(0xFFE0E0E0),
+                  color: isSelected
+                      ? option.color
+                      : DarkFeedColors.borderSubtle,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -244,7 +272,9 @@ class Step1Basico extends ConsumerWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? option.color : const Color(0xFF2D3436),
+                      color: isSelected
+                          ? option.color
+                          : DarkFeedColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -252,7 +282,7 @@ class Step1Basico extends ConsumerWidget {
                     option.description,
                     style: GoogleFonts.inter(
                       fontSize: 10,
-                      color: const Color(0xFF636E72),
+                      color: DarkFeedColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -273,9 +303,9 @@ class Step1Basico extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: DarkFeedColors.borderSubtle),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -288,14 +318,14 @@ class Step1Basico extends ConsumerWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF2D3436),
+                  color: DarkFeedColors.textPrimary,
                 ),
               ),
               Text(
                 'Incluye al organizador',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: const Color(0xFF636E72),
+                  color: DarkFeedColors.textSecondary,
                 ),
               ),
             ],
@@ -310,12 +340,19 @@ class Step1Basico extends ConsumerWidget {
               Container(
                 width: 50,
                 alignment: Alignment.center,
-                child: Text(
-                  '$value',
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF9B59B6),
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return DarkFeedColors.primaryGradient
+                        .createShader(bounds);
+                  },
+                  blendMode: BlendMode.srcIn,
+                  child: Text(
+                    '$value',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -342,12 +379,13 @@ class Step1Basico extends ConsumerWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xFF9B59B6) : const Color(0xFFE0E0E0),
+          gradient: enabled ? DarkFeedColors.primaryGradient : null,
+          color: enabled ? null : DarkFeedColors.surface,
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color: Colors.white,
+          color: enabled ? Colors.white : DarkFeedColors.textSecondary,
           size: 20,
         ),
       ),
@@ -363,14 +401,14 @@ class Step1Basico extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Costo'),
+        _buildSectionTitle('Costo', Icons.attach_money),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F9FA),
+            color: DarkFeedColors.cardBackground.withOpacity(0.6),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
+            border: Border.all(color: DarkFeedColors.borderSubtle),
           ),
           child: Column(
             children: [
@@ -385,14 +423,14 @@ class Step1Basico extends ConsumerWidget {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF2D3436),
+                          color: DarkFeedColors.textPrimary,
                         ),
                       ),
                       Text(
                         hasCost ? 'Precio por persona' : 'Plan gratuito',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: const Color(0xFF636E72),
+                          color: DarkFeedColors.textSecondary,
                         ),
                       ),
                     ],
@@ -400,7 +438,7 @@ class Step1Basico extends ConsumerWidget {
                   Switch(
                     value: hasCost,
                     onChanged: onToggle,
-                    activeColor: const Color(0xFF9B59B6),
+                    activeColor: DarkFeedColors.gradientOrange,
                   ),
                 ],
               ),
@@ -410,33 +448,43 @@ class Step1Basico extends ConsumerWidget {
                   initialValue: price > 0 ? price.toString() : '',
                   onChanged: (v) => onPriceChange(double.tryParse(v) ?? 0),
                   keyboardType: TextInputType.number,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: DarkFeedColors.textPrimary,
+                  ),
+                  cursorColor: DarkFeedColors.gradientOrange,
                   decoration: InputDecoration(
                     prefixText: '\$ ',
                     prefixStyle: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2D3436),
+                      color: DarkFeedColors.textPrimary,
                     ),
                     hintText: '0',
+                    hintStyle: GoogleFonts.inter(
+                      color: DarkFeedColors.textSecondary.withOpacity(0.5),
+                    ),
                     suffixText: 'COP',
                     suffixStyle: GoogleFonts.inter(
                       fontSize: 14,
-                      color: const Color(0xFF636E72),
+                      color: DarkFeedColors.textSecondary,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: DarkFeedColors.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                      borderSide:
+                          BorderSide(color: DarkFeedColors.borderSubtle),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                      borderSide:
+                          BorderSide(color: DarkFeedColors.borderSubtle),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF9B59B6), width: 2),
+                      borderSide: const BorderSide(
+                          color: DarkFeedColors.gradientOrange, width: 2),
                     ),
                   ),
                 ),

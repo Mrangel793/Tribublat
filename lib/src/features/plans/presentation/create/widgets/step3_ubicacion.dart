@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
 
 class Step3Ubicacion extends ConsumerStatefulWidget {
@@ -39,13 +40,13 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Ubicacion del plan'),
+          _buildSectionTitle('Ubicacion del plan', Icons.place),
           const SizedBox(height: 8),
           Text(
             'Donde se realizara tu plan?',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF636E72),
+              color: DarkFeedColors.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
@@ -56,20 +57,32 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
           _buildPopularCities(controller),
           const SizedBox(height: 24),
           _buildMapPreview(state.latitud, state.longitud),
-          const SizedBox(height: 100), // Espacio para el footer
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF2D3436),
-      ),
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return DarkFeedColors.primaryGradient.createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Icon(icon, size: 20, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -81,7 +94,7 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
           'Ciudad',
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -89,23 +102,38 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
         TextFormField(
           controller: _ciudadController,
           onChanged: controller.setCiudad,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: DarkFeedColors.textPrimary,
+          ),
+          cursorColor: DarkFeedColors.gradientOrange,
           decoration: InputDecoration(
             hintText: 'Ej: Bogota, Medellin, Cali...',
-            hintStyle: const TextStyle(color: Color(0xFFB2BEC3)),
-            prefixIcon: const Icon(Icons.location_city, color: Color(0xFF636E72)),
+            hintStyle: GoogleFonts.inter(
+              fontSize: 15,
+              color: DarkFeedColors.textSecondary.withOpacity(0.5),
+            ),
+            prefixIcon: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return DarkFeedColors.primaryGradient.createShader(bounds);
+              },
+              blendMode: BlendMode.srcIn,
+              child: const Icon(Icons.location_city, color: Colors.white),
+            ),
             filled: true,
-            fillColor: const Color(0xFFF8F9FA),
+            fillColor: DarkFeedColors.cardBackground.withOpacity(0.6),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: DarkFeedColors.borderSubtle),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: DarkFeedColors.borderSubtle),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF9B59B6), width: 2),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                  color: DarkFeedColors.gradientOrange, width: 2),
             ),
           ),
         ),
@@ -121,7 +149,7 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
           'Lugar especifico',
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -129,23 +157,38 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
         TextFormField(
           controller: _ubicacionController,
           onChanged: controller.setUbicacionNombre,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: DarkFeedColors.textPrimary,
+          ),
+          cursorColor: DarkFeedColors.gradientOrange,
           decoration: InputDecoration(
             hintText: 'Ej: Parque de la 93, Centro Comercial...',
-            hintStyle: const TextStyle(color: Color(0xFFB2BEC3)),
-            prefixIcon: const Icon(Icons.place, color: Color(0xFF636E72)),
+            hintStyle: GoogleFonts.inter(
+              fontSize: 15,
+              color: DarkFeedColors.textSecondary.withOpacity(0.5),
+            ),
+            prefixIcon: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return DarkFeedColors.primaryGradient.createShader(bounds);
+              },
+              blendMode: BlendMode.srcIn,
+              child: const Icon(Icons.place, color: Colors.white),
+            ),
             filled: true,
-            fillColor: const Color(0xFFF8F9FA),
+            fillColor: DarkFeedColors.cardBackground.withOpacity(0.6),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: DarkFeedColors.borderSubtle),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: DarkFeedColors.borderSubtle),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF9B59B6), width: 2),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                  color: DarkFeedColors.gradientOrange, width: 2),
             ),
           ),
         ),
@@ -171,7 +214,7 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -189,17 +232,17 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF9B59B6).withAlpha(26)
-                      : Colors.white,
+                      ? DarkFeedColors.gradientOrange.withOpacity(0.15)
+                      : DarkFeedColors.cardBackground.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF9B59B6)
-                        : const Color(0xFFE0E0E0),
+                        ? DarkFeedColors.gradientOrange
+                        : DarkFeedColors.borderSubtle,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -215,8 +258,8 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: isSelected
-                            ? const Color(0xFF9B59B6)
-                            : const Color(0xFF2D3436),
+                            ? DarkFeedColors.gradientOrange
+                            : DarkFeedColors.textPrimary,
                       ),
                     ),
                   ],
@@ -234,9 +277,9 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
       height: 180,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: DarkFeedColors.borderSubtle),
       ),
       child: Stack(
         children: [
@@ -244,15 +287,22 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              color: const Color(0xFFE8F4F8),
+              color: DarkFeedColors.surface,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.map_outlined,
-                      size: 48,
-                      color: const Color(0xFF9B59B6).withAlpha(128),
+                    ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return DarkFeedColors.primaryGradient
+                            .createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 48,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -261,16 +311,23 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
                           : 'Vista previa del mapa',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: const Color(0xFF636E72),
+                        color: DarkFeedColors.textSecondary,
                       ),
                     ),
                     if (lat != 0.0 && lng != 0.0) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: const Color(0xFF9B59B6),
+                      ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return DarkFeedColors.primaryGradient
+                              .createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: Text(
+                          '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -279,32 +336,35 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
               ),
             ),
           ),
-          // Botón de seleccionar en mapa
+          // Boton de seleccionar en mapa
           Positioned(
             right: 12,
             bottom: 12,
             child: GestureDetector(
               onTap: () {
-                // TODO: Implementar selección en mapa
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       'Seleccion de mapa proximamente',
-                      style: GoogleFonts.inter(),
+                      style: GoogleFonts.inter(color: Colors.white),
                     ),
-                    backgroundColor: const Color(0xFF9B59B6),
+                    backgroundColor: DarkFeedColors.gradientViolet,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 );
               },
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF9B59B6),
+                  gradient: DarkFeedColors.primaryGradient,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF9B59B6).withAlpha(100),
+                      color:
+                          DarkFeedColors.gradientOrange.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -313,7 +373,8 @@ class _Step3UbicacionState extends ConsumerState<Step3Ubicacion> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.my_location, color: Colors.white, size: 16),
+                    const Icon(Icons.my_location,
+                        color: Colors.white, size: 16),
                     const SizedBox(width: 6),
                     Text(
                       'Seleccionar',

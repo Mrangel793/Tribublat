@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/data/plan_repository.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/plans/presentation/feed/controllers/feed_controller.dart';
@@ -21,18 +22,27 @@ class ExploreScreen extends ConsumerStatefulWidget {
 
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocus.addListener(() {
+      setState(() => _isFocused = _searchFocus.hasFocus);
+    });
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
   void _onSearch(String query) {
     if (query.isNotEmpty) {
-      // Navegar al feed con la busqueda activa
       ref.read(feedControllerProvider.notifier).search(query);
-      // Cambiar a la pestaña de inicio (feed)
       DefaultTabController.of(context).animateTo(0);
     }
   }
@@ -40,23 +50,31 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: DarkFeedColors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Header
+            // Header + search
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Explorar',
-                      style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2D3436),
+                    // Title
+                    ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return DarkFeedColors.primaryGradient
+                            .createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: Text(
+                        'Explorar',
+                        style: GoogleFonts.poppins(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -64,79 +82,54 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       'Descubre planes por categoria',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: const Color(0xFF636E72),
+                        color: DarkFeedColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Barra de búsqueda funcional
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withAlpha(26),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onSubmitted: _onSearch,
-                        decoration: InputDecoration(
-                          hintText: 'Buscar planes, lugares, actividades...',
-                          hintStyle: GoogleFonts.inter(
-                            color: const Color(0xFFB2BEC3),
-                          ),
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: Color(0xFF9B59B6),
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, color: Color(0xFF636E72)),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {});
-                                  },
-                                )
-                              : null,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        onChanged: (_) => setState(() {}),
+                    // Search bar
+                    _buildSearchBar(),
+                  ],
+                ),
+              ),
+            ),
+            // Section title
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return DarkFeedColors.primaryGradient
+                            .createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: const Icon(Icons.grid_view_rounded,
+                          size: 20, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Categorias',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: DarkFeedColors.textPrimary,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            // Título de categorías
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Categorias',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
-                  ),
-                ),
-              ),
-            ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            // Grid de categorías
+            // Grid
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.3,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 1.25,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -154,8 +147,71 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Search bar
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: _isFocused ? DarkFeedColors.primaryGradient : null,
+        border: _isFocused
+            ? null
+            : Border.all(color: DarkFeedColors.borderSubtle),
+      ),
+      padding: _isFocused ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: DarkFeedColors.cardBackground.withOpacity(0.6),
+          borderRadius:
+              BorderRadius.circular(_isFocused ? 14.5 : 16),
+        ),
+        child: TextField(
+          controller: _searchController,
+          focusNode: _searchFocus,
+          onSubmitted: _onSearch,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: DarkFeedColors.textPrimary,
+          ),
+          cursorColor: DarkFeedColors.gradientOrange,
+          decoration: InputDecoration(
+            hintText: 'Buscar planes, lugares, actividades...',
+            hintStyle: GoogleFonts.inter(
+              fontSize: 15,
+              color: DarkFeedColors.textSecondary.withOpacity(0.6),
+            ),
+            prefixIcon: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return DarkFeedColors.primaryGradient.createShader(bounds);
+              },
+              blendMode: BlendMode.srcIn,
+              child: const Icon(Icons.search, color: Colors.white, size: 22),
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear,
+                        color: DarkFeedColors.textSecondary, size: 20),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {});
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // Category card
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildCategoryCard(BuildContext context, PlanCategoryInfo category) {
-    // Obtener la categoria enum
     final planCategory = PlanCategory.values.firstWhere(
       (c) => c.name == category.id,
       orElse: () => PlanCategory.otros,
@@ -163,96 +219,97 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final countAsync = ref.watch(categoryCountProvider(planCategory));
 
     return GestureDetector(
-      onTap: () {
-        context.push('/explore/category/${category.id}');
-      },
+      onTap: () => context.push('/explore/category/${category.id}'),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              category.color.withAlpha(200),
-              category.color,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: DarkFeedColors.cardBackground.withOpacity(0.6),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: category.color.withAlpha(100),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: DarkFeedColors.borderSubtle),
         ),
         child: Stack(
           children: [
-            // Emoji de fondo
+            // Emoji de fondo grande
             Positioned(
-              right: -10,
-              bottom: -10,
+              right: -8,
+              bottom: -8,
               child: Text(
                 category.emoji,
                 style: TextStyle(
-                  fontSize: 60,
-                  color: Colors.white.withAlpha(51),
+                  fontSize: 56,
+                  color: category.color.withOpacity(0.08),
                 ),
               ),
             ),
-            // Contenido
+            // Glow sutil del color de categoria
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20)),
+                  gradient: LinearGradient(
+                    colors: [
+                      category.color.withOpacity(0.6),
+                      category.color.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Content
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Emoji icon container
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(51),
-                      borderRadius: BorderRadius.circular(12),
+                      color: category.color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(
                       category.emoji,
-                      style: const TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 22),
                     ),
                   ),
                   const Spacer(),
+                  // Name
                   Text(
                     category.nombre,
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: DarkFeedColors.textPrimary,
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  // Count
                   countAsync.when(
-                    loading: () => Text(
-                      'Cargando...',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.white.withAlpha(200),
-                      ),
-                    ),
-                    error: (_, __) => Text(
-                      '0 planes',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.white.withAlpha(200),
-                      ),
-                    ),
-                    data: (count) => Text(
-                      '$count ${count == 1 ? 'plan' : 'planes'}',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.white.withAlpha(200),
-                      ),
-                    ),
+                    loading: () => _buildCountText('...'),
+                    error: (_, __) => _buildCountText('0 planes'),
+                    data: (count) => _buildCountText(
+                        '$count ${count == 1 ? 'plan' : 'planes'}'),
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCountText(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.inter(
+        fontSize: 12,
+        color: DarkFeedColors.textSecondary,
       ),
     );
   }

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/presentation/feed/screens/feed_screen.dart';
 import 'package:myapp/src/features/explore/explore_screen.dart';
 import 'package:myapp/src/features/alerts/alerts_screen.dart';
 import 'package:myapp/src/features/profile/profile_screen.dart';
 
-/// Pantalla principal con bottom navigation
+/// Pantalla principal con bottom navigation (Dark Mode)
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
@@ -40,20 +41,20 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DarkFeedColors.background,
       body: IndexedStack(
         index: _currentIndex == 2 ? 0 : _currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withAlpha(51),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+          color: DarkFeedColors.background,
+          border: Border(
+            top: BorderSide(
+              color: DarkFeedColors.borderSubtle,
+              width: 0.5,
             ),
-          ],
+          ),
         ),
         child: SafeArea(
           child: Padding(
@@ -79,7 +80,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   icon: Icons.notifications_outlined,
                   activeIcon: Icons.notifications,
                   label: 'Alertas',
-                  showBadge: true, // TODO: conectar con notificaciones reales
+                  showBadge: true,
                 ),
                 _buildNavItem(
                   index: 4,
@@ -103,7 +104,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     bool showBadge = false,
   }) {
     final isSelected = _currentIndex == index;
-    final color = isSelected ? const Color(0xFF9B59B6) : const Color(0xFF636E72);
 
     return GestureDetector(
       onTap: () => _onTabTapped(index),
@@ -116,11 +116,27 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(
-                  isSelected ? activeIcon : icon,
-                  color: color,
-                  size: 26,
-                ),
+                // Icono con gradiente si esta activo
+                if (isSelected)
+                  ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return DarkFeedColors.primaryGradient
+                          .createShader(bounds);
+                    },
+                    blendMode: BlendMode.srcIn,
+                    child: Icon(
+                      activeIcon,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  )
+                else
+                  Icon(
+                    icon,
+                    color: DarkFeedColors.textSecondary,
+                    size: 26,
+                  ),
+                // Badge de notificaciones
                 if (showBadge)
                   Positioned(
                     right: -4,
@@ -129,7 +145,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                       width: 10,
                       height: 10,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFFF6B6B),
+                        color: DarkFeedColors.greenEmerald,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -137,14 +153,44 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: color,
+            // Label con gradiente si esta activo
+            if (isSelected)
+              ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            else
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: DarkFeedColors.textSecondary,
+                ),
               ),
-            ),
+            // Dot indicador verde bajo el tab activo
+            const SizedBox(height: 4),
+            if (isSelected)
+              Container(
+                width: 5,
+                height: 5,
+                decoration: const BoxDecoration(
+                  color: DarkFeedColors.greenEmerald,
+                  shape: BoxShape.circle,
+                ),
+              )
+            else
+              const SizedBox(height: 5),
           ],
         ),
       ),
@@ -158,16 +204,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF9B59B6), Color(0xFFC06BFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: DarkFeedColors.primaryGradient,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF9B59B6).withAlpha(100),
-              blurRadius: 12,
+              color: DarkFeedColors.gradientOrange.withOpacity(0.4),
+              blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],

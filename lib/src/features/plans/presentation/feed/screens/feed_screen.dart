@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import '../controllers/feed_controller.dart';
 import '../widgets/feed_header.dart';
 import '../widgets/filter_chips_row.dart';
-import '../widgets/feed_tab_bar.dart';
+import '../widgets/express_plans_section.dart';
 import '../widgets/plan_card.dart';
 import '../widgets/advanced_filters_sheet.dart';
 
-/// Pantalla principal del feed de planes
+/// Pantalla principal del feed de planes (Dark Mode)
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
 
@@ -18,30 +19,13 @@ class FeedScreen extends ConsumerStatefulWidget {
   ConsumerState<FeedScreen> createState() => _FeedScreenState();
 }
 
-class _FeedScreenState extends ConsumerState<FeedScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _FeedScreenState extends ConsumerState<FeedScreen> {
   final _searchController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(_onTabChanged);
-  }
-
-  @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _onTabChanged() {
-    if (!_tabController.indexIsChanging) {
-      final tabs = FeedTab.values;
-      ref.read(feedControllerProvider.notifier).setTab(tabs[_tabController.index]);
-    }
   }
 
   void _onSearch(String query) {
@@ -52,18 +36,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     ref.read(feedControllerProvider.notifier).setFilter(filter);
   }
 
-  Future<void> _onRefresh() async {
-    await ref.read(feedControllerProvider.notifier).refresh();
+  void _onTabSelected(FeedTab tab) {
+    ref.read(feedControllerProvider.notifier).setTab(tab);
   }
 
-  void _onProfileTap() {
-    // TODO: Navegar a perfil
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Perfil - Proximamente'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  void _onCategorySelected(PlanCategory? category) {
+    ref.read(feedControllerProvider.notifier).setCategory(category);
+  }
+
+  Future<void> _onRefresh() async {
+    await ref.read(feedControllerProvider.notifier).refresh();
   }
 
   void _showAdvancedFilters() async {
@@ -90,26 +72,40 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(feedControllerProvider);
 
-    // Escuchar errores
+    // Escuchar errores y mensajes de exito
     ref.listen<FeedState>(
       feedControllerProvider,
       (previous, next) {
-        if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
+        if (next.errorMessage != null &&
+            next.errorMessage != previous?.errorMessage) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(next.errorMessage!),
-              backgroundColor: Colors.red,
+              content: Text(
+                next.errorMessage!,
+                style: GoogleFonts.inter(color: Colors.white),
+              ),
+              backgroundColor: DarkFeedColors.errorRed,
               behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
           ref.read(feedControllerProvider.notifier).clearError();
         }
-        if (next.successMessage != null && next.successMessage != previous?.successMessage) {
+        if (next.successMessage != null &&
+            next.successMessage != previous?.successMessage) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(next.successMessage!),
-              backgroundColor: const Color(0xFF4ECDC4),
+              content: Text(
+                next.successMessage!,
+                style: GoogleFonts.inter(color: Colors.white),
+              ),
+              backgroundColor: DarkFeedColors.greenEmerald,
               behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
           ref.read(feedControllerProvider.notifier).clearSuccess();
@@ -118,114 +114,147 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: DarkFeedColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            FeedHeader(
-              searchController: _searchController,
-              onSearch: _onSearch,
-              onProfileTap: _onProfileTap,
-              onFilterTap: _showAdvancedFilters,
-              userPhoto: state.currentUser?.foto,
-              activeFiltersCount: state.activeFiltersCount,
-            ),
+        child: RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: DarkFeedColors.gradientOrange,
+          backgroundColor: DarkFeedColors.cardBackground,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── Header ──
+              SliverToBoxAdapter(
+                child: FeedHeader(
+                  searchController: _searchController,
+                  onSearch: _onSearch,
+                  onFilterTap: _showAdvancedFilters,
+                  activeFiltersCount: state.activeFiltersCount,
+                  userName: state.currentUser?.nombre,
+                  userPhotoBase64: state.currentUser?.foto,
+                  onNotificationTap: () {
+                    // TODO: navegar a notificaciones
+                  },
+                  onAvatarTap: () {
+                    // TODO: navegar a perfil
+                  },
+                ),
+              ),
 
-            const SizedBox(height: 8),
+              // ── Express Plans ──
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: ExpressPlansSection(
+                    plans: state.plans
+                        .where((p) => p.esInstantaneo)
+                        .toList(),
+                    onPlanTap: (plan) {
+                      context.push('/plan/${plan.id}');
+                    },
+                  ),
+                ),
+              ),
 
-            // Filter chips
-            FilterChipsRow(
-              selectedFilter: state.currentFilter,
-              onFilterSelected: _onFilterSelected,
-            ),
+              // ── Filter Chips ──
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: DarkFilterChipsRow(
+                    selectedFilter: state.currentFilter,
+                    selectedTab: state.currentTab,
+                    selectedCategory: state.selectedCategory,
+                    onFilterSelected: _onFilterSelected,
+                    onTabSelected: _onTabSelected,
+                    onCategorySelected: _onCategorySelected,
+                  ),
+                ),
+              ),
 
-            const SizedBox(height: 8),
+              // ── Plans List ──
+              if (state.isLoading && state.plans.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        DarkFeedColors.gradientOrange,
+                      ),
+                    ),
+                  ),
+                )
+              else if (state.plans.isEmpty)
+                SliverFillRemaining(
+                  child: _buildEmptyState(state.currentTab),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final plan = state.plans[index];
+                        final matchScore = state.matchScores[plan.id];
+                        final controller =
+                            ref.read(feedControllerProvider.notifier);
 
-            // Tab bar
-            FeedTabBar(controller: _tabController),
-
-            // Lista de planes
-            Expanded(
-              child: _buildPlansList(state),
-            ),
-          ],
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: PlanCard(
+                            plan: plan,
+                            matchPercentage: matchScore,
+                            onTap: () {
+                              context.push('/plan/${plan.id}');
+                            },
+                            onJoin: () {
+                              if (controller.isUserInPlan(plan)) {
+                                controller.leavePlan(plan.id);
+                              } else {
+                                controller.joinPlan(plan.id);
+                              }
+                            },
+                            isUserJoined: controller.isUserInPlan(plan),
+                            isInWaitingList:
+                                controller.isUserInWaitingList(plan),
+                            isLoading: state.joiningPlanId == plan.id,
+                            groupAffinity: matchScore != null
+                                ? matchScore / 100
+                                : null,
+                          ),
+                        );
+                      },
+                      childCount: state.plans.length,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPlansList(FeedState state) {
-    if (state.isLoading && state.plans.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9B59B6)),
-        ),
-      );
-    }
-
-    if (state.plans.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return RefreshIndicator(
-      onRefresh: _onRefresh,
-      color: const Color(0xFF9B59B6),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: state.plans.length,
-        itemBuilder: (context, index) {
-          final plan = state.plans[index];
-          final matchScore = state.matchScores[plan.id];
-          final controller = ref.read(feedControllerProvider.notifier);
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: PlanCard(
-              plan: plan,
-              matchPercentage: matchScore,
-              onTap: () {
-                context.push('/plan/${plan.id}');
-              },
-              onJoin: () {
-                if (controller.isUserInPlan(plan)) {
-                  controller.leavePlan(plan.id);
-                } else {
-                  controller.joinPlan(plan.id);
-                }
-              },
-              isUserJoined: controller.isUserInPlan(plan),
-              isInWaitingList: controller.isUserInWaitingList(plan),
-              isLoading: state.joiningPlanId == plan.id,
-              groupAffinity: matchScore != null ? matchScore / 100 : null,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(FeedTab currentTab) {
     String message;
     String subtitle;
+    IconData icon;
 
-    switch (ref.read(feedControllerProvider).currentTab) {
+    switch (currentTab) {
       case FeedTab.paraTi:
         message = 'No hay planes recomendados';
-        subtitle = 'Intenta completar tu perfil para mejores recomendaciones';
-        break;
+        subtitle = 'Completa tu perfil para mejores recomendaciones';
+        icon = Icons.auto_awesome;
       case FeedTab.cerca:
         message = 'No hay planes cerca';
         subtitle = 'No encontramos planes en tu ciudad';
-        break;
+        icon = Icons.location_off;
       case FeedTab.instantaneos:
-        message = 'No hay planes instantaneos';
+        message = 'No hay planes express';
         subtitle = 'Vuelve mas tarde o crea un plan espontaneo';
-        break;
+        icon = Icons.bolt;
       case FeedTab.misPlanes:
         message = 'Aun no tienes planes';
         subtitle = 'Explora y unete a planes que te interesen';
-        break;
+        icon = Icons.event_busy;
     }
 
     return Center(
@@ -235,16 +264,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFF9B59B6).withAlpha(26),
+                color: DarkFeedColors.gradientViolet.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.event_busy,
-                size: 50,
-                color: Color(0xFF9B59B6),
+              child: Icon(
+                icon,
+                size: 40,
+                color: DarkFeedColors.gradientViolet,
               ),
             ),
             const SizedBox(height: 24),
@@ -253,7 +282,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF2D3436),
+                color: DarkFeedColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -262,17 +291,23 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
               subtitle,
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: const Color(0xFF636E72),
+                color: DarkFeedColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Toca + para crear un plan',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: const Color(0xFF9B59B6),
-                fontWeight: FontWeight.w500,
+            const SizedBox(height: 20),
+            ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return DarkFeedColors.primaryGradient.createShader(bounds);
+              },
+              blendMode: BlendMode.srcIn,
+              child: Text(
+                'Toca + para crear un plan',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],

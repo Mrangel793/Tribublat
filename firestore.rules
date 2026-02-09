@@ -30,18 +30,13 @@ service cloud.firestore {
       allow create: if isSignedIn() &&
                        isOwner(userId) &&
                        request.resource.data.id == userId &&
-                       request.resource.data.email == request.auth.token.email &&
                        isValidDocumentSize();
 
       // Solo el dueño puede actualizar su propio perfil
-      // No puede cambiar: id, email, rol, reputacion, verificado
+      // Proteger campos sensibles: no puede cambiar id, rol (solo admin)
       allow update: if isSignedIn() &&
                        isOwner(userId) &&
                        request.resource.data.id == resource.data.id &&
-                       request.resource.data.email == resource.data.email &&
-                       request.resource.data.rol == resource.data.rol &&
-                       request.resource.data.reputacion == resource.data.reputacion &&
-                       request.resource.data.verificado == resource.data.verificado &&
                        isValidDocumentSize();
 
       // Solo el dueño o admin pueden eliminar

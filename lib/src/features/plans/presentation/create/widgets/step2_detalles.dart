@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
 
 class Step2Detalles extends ConsumerWidget {
@@ -17,13 +18,13 @@ class Step2Detalles extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Fecha y hora'),
+          _buildSectionTitle('Fecha y hora', Icons.event),
           const SizedBox(height: 8),
           Text(
             'Cuando se realizara tu plan?',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF636E72),
+              color: DarkFeedColors.textSecondary,
             ),
           ),
           const SizedBox(height: 20),
@@ -59,20 +60,32 @@ class Step2Detalles extends ConsumerWidget {
           ],
           const SizedBox(height: 32),
           _buildQuickDateButtons(context, controller.setFecha),
-          const SizedBox(height: 100), // Espacio para el footer
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF2D3436),
-      ),
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return DarkFeedColors.primaryGradient.createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Icon(icon, size: 20, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -94,12 +107,13 @@ class Step2Detalles extends ConsumerWidget {
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: Color(0xFF9B59B6),
+                colorScheme: ColorScheme.dark(
+                  primary: DarkFeedColors.gradientOrange,
                   onPrimary: Colors.white,
-                  surface: Colors.white,
-                  onSurface: Color(0xFF2D3436),
+                  surface: DarkFeedColors.cardBackground,
+                  onSurface: DarkFeedColors.textPrimary,
                 ),
+                dialogBackgroundColor: DarkFeedColors.cardBackground,
               ),
               child: child!,
             );
@@ -112,12 +126,12 @@ class Step2Detalles extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA),
+          color: DarkFeedColors.cardBackground.withOpacity(0.6),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selectedDate != null
-                ? const Color(0xFF9B59B6)
-                : const Color(0xFFE0E0E0),
+                ? DarkFeedColors.gradientOrange
+                : DarkFeedColors.borderSubtle,
             width: selectedDate != null ? 2 : 1,
           ),
         ),
@@ -126,13 +140,19 @@ class Step2Detalles extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF9B59B6).withAlpha(26),
+                color: DarkFeedColors.gradientViolet.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.calendar_today,
-                color: Color(0xFF9B59B6),
-                size: 24,
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: const Icon(
+                  Icons.calendar_today,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -144,7 +164,7 @@ class Step2Detalles extends ConsumerWidget {
                     'Fecha',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: const Color(0xFF636E72),
+                      color: DarkFeedColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -156,8 +176,8 @@ class Step2Detalles extends ConsumerWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: selectedDate != null
-                          ? const Color(0xFF2D3436)
-                          : const Color(0xFFB2BEC3),
+                          ? DarkFeedColors.textPrimary
+                          : DarkFeedColors.textSecondary.withOpacity(0.5),
                     ),
                   ),
                 ],
@@ -165,7 +185,7 @@ class Step2Detalles extends ConsumerWidget {
             ),
             const Icon(
               Icons.chevron_right,
-              color: Color(0xFF636E72),
+              color: DarkFeedColors.textSecondary,
             ),
           ],
         ),
@@ -193,12 +213,13 @@ class Step2Detalles extends ConsumerWidget {
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: Color(0xFF9B59B6),
+                colorScheme: ColorScheme.dark(
+                  primary: DarkFeedColors.gradientOrange,
                   onPrimary: Colors.white,
-                  surface: Colors.white,
-                  onSurface: Color(0xFF2D3436),
+                  surface: DarkFeedColors.cardBackground,
+                  onSurface: DarkFeedColors.textPrimary,
                 ),
+                dialogBackgroundColor: DarkFeedColors.cardBackground,
               ),
               child: child!,
             );
@@ -206,17 +227,19 @@ class Step2Detalles extends ConsumerWidget {
         );
         if (time != null) {
           final now = DateTime.now();
-          onSelect(DateTime(now.year, now.month, now.day, time.hour, time.minute));
+          onSelect(
+              DateTime(now.year, now.month, now.day, time.hour, time.minute));
         }
       },
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA),
+          color: DarkFeedColors.cardBackground.withOpacity(0.6),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                value != null ? const Color(0xFF9B59B6) : const Color(0xFFE0E0E0),
+            color: value != null
+                ? DarkFeedColors.gradientOrange
+                : DarkFeedColors.borderSubtle,
             width: value != null ? 2 : 1,
           ),
         ),
@@ -225,10 +248,13 @@ class Step2Detalles extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  icon,
-                  color: const Color(0xFF9B59B6),
-                  size: 18,
+                ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return DarkFeedColors.primaryGradient
+                        .createShader(bounds);
+                  },
+                  blendMode: BlendMode.srcIn,
+                  child: Icon(icon, color: Colors.white, size: 18),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -236,7 +262,7 @@ class Step2Detalles extends ConsumerWidget {
                     label,
                     style: GoogleFonts.inter(
                       fontSize: 11,
-                      color: const Color(0xFF636E72),
+                      color: DarkFeedColors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -249,7 +275,7 @@ class Step2Detalles extends ConsumerWidget {
                 '(opcional)',
                 style: GoogleFonts.inter(
                   fontSize: 9,
-                  color: const Color(0xFFB2BEC3),
+                  color: DarkFeedColors.textSecondary.withOpacity(0.5),
                 ),
               ),
             const SizedBox(height: 6),
@@ -259,8 +285,8 @@ class Step2Detalles extends ConsumerWidget {
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
                 color: value != null
-                    ? const Color(0xFF2D3436)
-                    : const Color(0xFFB2BEC3),
+                    ? DarkFeedColors.textPrimary
+                    : DarkFeedColors.textSecondary.withOpacity(0.5),
               ),
             ),
           ],
@@ -284,15 +310,18 @@ class Step2Detalles extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF4ECDC4).withAlpha(26),
+        color: DarkFeedColors.greenEmerald.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: DarkFeedColors.greenEmerald.withOpacity(0.2),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
             Icons.timer_outlined,
-            color: Color(0xFF4ECDC4),
+            color: DarkFeedColors.greenEmerald,
             size: 20,
           ),
           const SizedBox(width: 8),
@@ -301,7 +330,7 @@ class Step2Detalles extends ConsumerWidget {
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF4ECDC4),
+              color: DarkFeedColors.greenEmerald,
             ),
           ),
         ],
@@ -326,7 +355,7 @@ class Step2Detalles extends ConsumerWidget {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -366,27 +395,26 @@ class Step2Detalles extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: DarkFeedColors.cardBackground.withOpacity(0.6),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withAlpha(26),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(color: DarkFeedColors.borderSubtle),
           ),
           child: Column(
             children: [
-              Icon(icon, color: const Color(0xFF9B59B6), size: 22),
+              ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
               const SizedBox(height: 6),
               Text(
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF2D3436),
+                  color: DarkFeedColors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
@@ -404,6 +432,7 @@ class Step2Detalles extends ConsumerWidget {
     if (daysUntilSaturday == 0 && date.weekday == DateTime.saturday) {
       return date;
     }
-    return date.add(Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
+    return date.add(
+        Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
   }
 }

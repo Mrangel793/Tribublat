@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/plans/presentation/create/controllers/create_plan_controller.dart';
 
@@ -22,15 +23,15 @@ class SponsorOptionsWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFFB347).withOpacity(0.1),
-            const Color(0xFFFF6B9D).withOpacity(0.1),
+            DarkFeedColors.gradientOrange.withOpacity(0.08),
+            DarkFeedColors.gradientViolet.withOpacity(0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFFB347).withOpacity(0.3),
+          color: DarkFeedColors.gradientOrange.withOpacity(0.25),
         ),
       ),
       child: Column(
@@ -40,9 +41,10 @@ class SponsorOptionsWidget extends ConsumerWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFB347),
+                  gradient: DarkFeedColors.primaryGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -68,7 +70,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                 ),
               ),
@@ -94,16 +96,17 @@ class SponsorOptionsWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildSponsorToggle(CreatePlanState state, CreatePlanController controller) {
+  Widget _buildSponsorToggle(
+      CreatePlanState state, CreatePlanController controller) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: state.esDestacado
-              ? const Color(0xFFFFB347)
-              : const Color(0xFFE0E0E0),
+              ? DarkFeedColors.gradientOrange
+              : DarkFeedColors.borderSubtle,
           width: state.esDestacado ? 2 : 1,
         ),
       ),
@@ -112,12 +115,12 @@ class SponsorOptionsWidget extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFB347).withOpacity(0.1),
+              color: DarkFeedColors.gradientOrange.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.campaign,
-              color: Color(0xFFFFB347),
+              color: DarkFeedColors.gradientOrange,
               size: 24,
             ),
           ),
@@ -131,14 +134,14 @@ class SponsorOptionsWidget extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                 ),
                 Text(
                   'Mayor visibilidad en el feed',
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: const Color(0xFF636E72),
+                    color: DarkFeedColors.textSecondary,
                   ),
                 ),
               ],
@@ -147,14 +150,15 @@ class SponsorOptionsWidget extends ConsumerWidget {
           Switch(
             value: state.esDestacado,
             onChanged: controller.setEsDestacado,
-            activeColor: const Color(0xFFFFB347),
+            activeColor: DarkFeedColors.gradientOrange,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTierSelector(CreatePlanState state, CreatePlanController controller) {
+  Widget _buildTierSelector(
+      CreatePlanState state, CreatePlanController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -163,7 +167,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -174,7 +178,9 @@ class SponsorOptionsWidget extends ConsumerWidget {
             SponsorTier.basico,
             SponsorTier.premium,
             SponsorTier.exclusivo,
-          ].map((tier) => _buildTierChip(tier, state, controller)).toList(),
+          ]
+              .map((tier) => _buildTierChip(tier, state, controller))
+              .toList(),
         ),
       ],
     );
@@ -191,12 +197,15 @@ class SponsorOptionsWidget extends ConsumerWidget {
     return GestureDetector(
       onTap: () => controller.setTipoDestacado(tier),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.2) : Colors.white,
+          color: isSelected
+              ? color.withOpacity(0.15)
+              : DarkFeedColors.cardBackground.withOpacity(0.6),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : const Color(0xFFE0E0E0),
+            color: isSelected ? color : DarkFeedColors.borderSubtle,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -205,7 +214,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
           children: [
             Icon(
               isSelected ? Icons.check_circle : tier.icon,
-              color: isSelected ? color : const Color(0xFF636E72),
+              color: isSelected ? color : DarkFeedColors.textSecondary,
               size: 16,
             ),
             const SizedBox(width: 6),
@@ -214,7 +223,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? color : const Color(0xFF636E72),
+                color: isSelected ? color : DarkFeedColors.textSecondary,
               ),
             ),
           ],
@@ -223,7 +232,8 @@ class SponsorOptionsWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildDurationSelector(CreatePlanState state, CreatePlanController controller) {
+  Widget _buildDurationSelector(
+      CreatePlanState state, CreatePlanController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -232,7 +242,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -259,16 +269,17 @@ class SponsorOptionsWidget extends ConsumerWidget {
     return GestureDetector(
       onTap: () => controller.setDiasDestacado(dias),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF9B59B6).withOpacity(0.1)
-              : Colors.white,
+              ? DarkFeedColors.gradientViolet.withOpacity(0.15)
+              : DarkFeedColors.cardBackground.withOpacity(0.6),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF9B59B6)
-                : const Color(0xFFE0E0E0),
+                ? DarkFeedColors.gradientViolet
+                : DarkFeedColors.borderSubtle,
           ),
         ),
         child: Text(
@@ -277,8 +288,8 @@ class SponsorOptionsWidget extends ConsumerWidget {
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected
-                ? const Color(0xFF9B59B6)
-                : const Color(0xFF636E72),
+                ? DarkFeedColors.gradientViolet
+                : DarkFeedColors.textSecondary,
           ),
         ),
       ),
@@ -293,6 +304,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         color: tier.color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tier.color.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -303,7 +315,7 @@ class SponsorOptionsWidget extends ConsumerWidget {
               tier.descripcion,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: const Color(0xFF2D3436),
+                color: DarkFeedColors.textPrimary,
               ),
             ),
           ),

@@ -46,6 +46,9 @@ class AuthRepository {
       await _firebaseAuth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthError(e.code);
+    } catch (e) {
+      // Cualquier otro error (configuración, red, etc.)
+      throw AuthException('Error con Google: $e');
     }
   }
 

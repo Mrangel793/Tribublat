@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/plans/data/plan_repository.dart';
 import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
@@ -28,11 +29,11 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     final planAsync = ref.watch(planStreamProvider(widget.planId));
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: DarkFeedColors.background,
       body: planAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9B59B6)),
+            color: DarkFeedColors.gradientOrange,
           ),
         ),
         error: (error, _) => _buildErrorState(error.toString()),
@@ -51,16 +52,30 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 64, color: Color(0xFFFF6B6B)),
+          const Icon(Icons.error_outline, size: 64, color: DarkFeedColors.errorRed),
           const SizedBox(height: 16),
           Text(
             message,
-            style: GoogleFonts.inter(fontSize: 16, color: const Color(0xFF636E72)),
+            style: GoogleFonts.inter(fontSize: 16, color: DarkFeedColors.textSecondary),
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => context.pop(),
-            child: const Text('Volver'),
+          GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: DarkFeedColors.primaryGradient,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                'Volver',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -78,43 +93,34 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       children: [
         CustomScrollView(
           slivers: [
-            // App Bar con imagen
             _buildSliverAppBar(plan, categoryInfo),
-            // Contenido
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Fecha y ubicación cards
+                    const SizedBox(height: 20),
                     _buildDateLocationCards(plan),
                     const SizedBox(height: 24),
-                    // Descripción
                     _buildDescriptionSection(plan),
                     const SizedBox(height: 24),
-                    // Mapa
                     _buildMapSection(plan),
                     const SizedBox(height: 24),
-                    // Organizador
                     _buildOrganizerSection(plan),
                     const SizedBox(height: 24),
-                    // Participantes
                     _buildParticipantsSection(plan),
                     const SizedBox(height: 24),
-                    // Afinidad (solo si no es el organizador)
                     if (!isOrganizer) _buildAffinitySection(plan),
                     if (!isOrganizer) const SizedBox(height: 24),
-                    // Detalles adicionales
                     _buildAdditionalDetails(plan),
-                    const SizedBox(height: 120), // Espacio para el botón
+                    const SizedBox(height: 140),
                   ],
                 ),
               ),
             ),
           ],
         ),
-        // Botón fijo en la parte inferior
         Positioned(
           left: 0,
           right: 0,
@@ -125,28 +131,26 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // SliverAppBar con imagen hero
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildSliverAppBar(PlanModel plan, PlanCategoryInfo? categoryInfo) {
     final isInstant = plan.fechaHora.difference(DateTime.now()).inHours < 24;
 
     return SliverAppBar(
-      expandedHeight: 280,
+      expandedHeight: 300,
       pinned: true,
-      backgroundColor: Colors.white,
+      backgroundColor: DarkFeedColors.background,
       leading: GestureDetector(
         onTap: () => context.pop(),
         child: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(26),
-                blurRadius: 8,
-              ),
-            ],
+            color: Colors.black.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.arrow_back, color: Color(0xFF2D3436)),
+          child: const Icon(Icons.arrow_back_ios_new,
+              color: Colors.white, size: 18),
         ),
       ),
       actions: [
@@ -156,18 +160,13 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           },
           child: Container(
             margin: const EdgeInsets.all(8),
-            padding: const EdgeInsets.all(8),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(26),
-                  blurRadius: 8,
-                ),
-              ],
+              color: Colors.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.share, color: Color(0xFF2D3436), size: 20),
+            child: const Icon(Icons.share, color: Colors.white, size: 20),
           ),
         ),
       ],
@@ -182,23 +181,17 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                     fit: BoxFit.cover,
                   )
                 : Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          categoryInfo?.color.withAlpha(200) ?? const Color(0xFF9B59B6),
-                          categoryInfo?.color ?? const Color(0xFFC06BFF),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                    color: DarkFeedColors.cardBackground,
+                    child: Center(
+                      child: Icon(
+                        categoryInfo?.icon ?? Icons.event,
+                        size: 80,
+                        color: (categoryInfo?.color ?? DarkFeedColors.gradientViolet)
+                            .withOpacity(0.3),
                       ),
                     ),
-                    child: Icon(
-                      categoryInfo?.icon ?? Icons.event,
-                      size: 80,
-                      color: Colors.white.withAlpha(100),
-                    ),
                   ),
-            // Gradiente oscuro
+            // Gradient overlay
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -206,12 +199,15 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withAlpha(180),
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                    Colors.black,
                   ],
+                  stops: const [0.0, 0.3, 0.7, 1.0],
                 ),
               ),
             ),
-            // Badge y título
+            // Badge + titulo
             Positioned(
               left: 20,
               right: 20,
@@ -219,18 +215,19 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Badge instantáneo
                   if (isInstant)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4ECDC4),
+                        color: DarkFeedColors.greenEmerald,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.bolt, color: Colors.white, size: 16),
+                          const Icon(Icons.bolt,
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 4),
                           Text(
                             'Instantaneo',
@@ -244,12 +241,11 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                       ),
                     ),
                   const SizedBox(height: 8),
-                  // Título
                   Text(
                     plan.titulo,
                     style: GoogleFonts.poppins(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
@@ -262,6 +258,9 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Fecha y ubicacion
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildDateLocationCards(PlanModel plan) {
     final dateFormat = DateFormat('EEE d MMM', 'es');
     final timeFormat = DateFormat('h:mm a');
@@ -269,30 +268,26 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
 
     return Row(
       children: [
-        // Fecha
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FA),
+              color: DarkFeedColors.cardBackground.withOpacity(0.6),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
+              border: Border.all(color: DarkFeedColors.borderSubtle),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF9B59B6).withAlpha(26),
+                    color: DarkFeedColors.gradientViolet.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.calendar_today,
-                    color: Color(0xFF9B59B6),
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.calendar_today,
+                      color: DarkFeedColors.gradientViolet, size: 18),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,16 +295,16 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                       Text(
                         dateFormat.format(plan.fechaHora),
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF2D3436),
+                          color: DarkFeedColors.textPrimary,
                         ),
                       ),
                       Text(
                         '${timeFormat.format(plan.fechaHora)} - ${timeFormat.format(endTime)}',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: const Color(0xFF636E72),
+                          fontSize: 11,
+                          color: DarkFeedColors.textSecondary,
                         ),
                       ),
                     ],
@@ -320,30 +315,26 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        // Ubicación
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FA),
+              color: DarkFeedColors.cardBackground.withOpacity(0.6),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
+              border: Border.all(color: DarkFeedColors.borderSubtle),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B9D).withAlpha(26),
+                    color: DarkFeedColors.gradientOrange.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.location_on,
-                    color: Color(0xFFFF6B9D),
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.location_on,
+                      color: DarkFeedColors.gradientOrange, size: 18),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,9 +342,9 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                       Text(
                         plan.ubicacionNombre,
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF2D3436),
+                          color: DarkFeedColors.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -361,8 +352,8 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                       Text(
                         plan.ciudad,
                         style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: const Color(0xFF636E72),
+                          fontSize: 11,
+                          color: DarkFeedColors.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -378,30 +369,28 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Descripcion
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildDescriptionSection(PlanModel plan) {
     final maxLines = _isDescriptionExpanded ? 100 : 3;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Sobre este plan',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF2D3436),
-          ),
-        ),
-        const SizedBox(height: 8),
+        _buildSectionTitle(Icons.info_outline, 'Sobre este plan'),
+        const SizedBox(height: 10),
         Text(
           plan.descripcion,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF636E72),
+            color: DarkFeedColors.textSecondary,
             height: 1.5,
           ),
           maxLines: maxLines,
-          overflow: _isDescriptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+          overflow: _isDescriptionExpanded
+              ? TextOverflow.visible
+              : TextOverflow.ellipsis,
         ),
         if (plan.descripcion.length > 100)
           GestureDetector(
@@ -412,12 +401,18 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
             },
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                _isDescriptionExpanded ? 'Ver menos' : 'Leer mas',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9B59B6),
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: Text(
+                  _isDescriptionExpanded ? 'Ver menos' : 'Leer mas',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -426,34 +421,29 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Mapa placeholder
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildMapSection(PlanModel plan) {
     return Container(
       height: 160,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F4F8),
+        color: DarkFeedColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: DarkFeedColors.borderSubtle),
       ),
       child: Stack(
         children: [
-          // Placeholder del mapa
           Center(
-            child: Icon(
-              Icons.map,
-              size: 60,
-              color: const Color(0xFF9B59B6).withAlpha(100),
-            ),
+            child: Icon(Icons.map,
+                size: 60,
+                color: DarkFeedColors.textSecondary.withOpacity(0.15)),
           ),
-          // Pin de ubicación
           Center(
-            child: Icon(
-              Icons.location_on,
-              size: 40,
-              color: const Color(0xFFFF6B6B),
-            ),
+            child: Icon(Icons.location_on,
+                size: 40, color: DarkFeedColors.errorRed.withOpacity(0.7)),
           ),
-          // Botón abrir en maps
           Positioned(
             bottom: 12,
             left: 0,
@@ -464,29 +454,39 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                   // TODO: Abrir en Google Maps
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: DarkFeedColors.cardBackground,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(26),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(color: DarkFeedColors.borderSubtle),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.navigation, color: Color(0xFF9B59B6), size: 18),
+                      ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return DarkFeedColors.primaryGradient
+                              .createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: const Icon(Icons.navigation,
+                            color: Colors.white, size: 18),
+                      ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Abrir en Maps',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF9B59B6),
+                      ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return DarkFeedColors.primaryGradient
+                              .createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: Text(
+                          'Abrir en Maps',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -500,85 +500,99 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Organizador
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildOrganizerSection(PlanModel plan) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: Row(
-        children: [
-          // Foto del organizador
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF9B59B6), width: 2),
+    return GestureDetector(
+      onTap: () => context.push('/profile/${plan.organizadorId}'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: DarkFeedColors.cardBackground.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: DarkFeedColors.borderSubtle),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: DarkFeedColors.primaryGradient,
+              ),
+              padding: const EdgeInsets.all(2),
+              child: ClipOval(
+                child: plan.organizadorFoto.isNotEmpty
+                    ? (plan.organizadorFoto.startsWith('http')
+                        ? Image.network(plan.organizadorFoto,
+                            fit: BoxFit.cover)
+                        : Image.memory(
+                            base64Decode(plan.organizadorFoto),
+                            fit: BoxFit.cover))
+                    : Container(
+                        color: DarkFeedColors.surface,
+                        child: const Icon(Icons.person,
+                            color: DarkFeedColors.textSecondary),
+                      ),
+              ),
             ),
-            child: ClipOval(
-              child: plan.organizadorFoto.isNotEmpty
-                  ? (plan.organizadorFoto.startsWith('http')
-                      ? Image.network(plan.organizadorFoto, fit: BoxFit.cover)
-                      : Image.memory(base64Decode(plan.organizadorFoto), fit: BoxFit.cover))
-                  : Container(
-                      color: const Color(0xFFE0E0E0),
-                      child: const Icon(Icons.person, color: Color(0xFF636E72)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    plan.organizadorNombre,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: DarkFeedColors.textPrimary,
                     ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  plan.organizadorNombre,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
                   ),
-                ),
-                Text(
-                  'Organizador',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: const Color(0xFF636E72),
+                  Text(
+                    'Organizador',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: DarkFeedColors.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // Rating
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB347).withAlpha(26),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.star, color: Color(0xFFFFB347), size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  plan.organizadorReputacion.toStringAsFixed(1),
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFFFFB347),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFD700).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.star_rounded,
+                      color: Color(0xFFFFD700), size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    plan.organizadorReputacion.toStringAsFixed(1),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFFFFD700),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Participantes
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildParticipantsSection(PlanModel plan) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -586,37 +600,38 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Quien va (${plan.capacidadActual} personas)',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF2D3436),
-              ),
-            ),
+            _buildSectionTitle(
+                Icons.group, 'Quien va (${plan.capacidadActual})'),
             GestureDetector(
               onTap: () {
                 // TODO: Ver todos los participantes
               },
-              child: Text(
-                'Ver todos',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9B59B6),
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: Text(
+                  'Ver todos',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        // Avatar stack
         SizedBox(
           height: 45,
           child: Stack(
             children: [
               ...List.generate(
-                plan.participantesIds.length > 5 ? 5 : plan.participantesIds.length,
+                plan.participantesIds.length > 5
+                    ? 5
+                    : plan.participantesIds.length,
                 (index) => Positioned(
                   left: index * 30.0,
                   child: Container(
@@ -624,10 +639,19 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                     height: 45,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      color: Color(0xFF9B59B6).withAlpha(50 + (index * 30)),
+                      border: Border.all(
+                          color: DarkFeedColors.background, width: 3),
+                      gradient: LinearGradient(
+                        colors: [
+                          DarkFeedColors.gradientOrange
+                              .withOpacity(0.3 + (index * 0.1)),
+                          DarkFeedColors.gradientViolet
+                              .withOpacity(0.3 + (index * 0.1)),
+                        ],
+                      ),
                     ),
-                    child: const Icon(Icons.person, color: Colors.white, size: 24),
+                    child: const Icon(Icons.person,
+                        color: Colors.white, size: 22),
                   ),
                 ),
               ),
@@ -639,8 +663,9 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                     height: 45,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      color: const Color(0xFF636E72),
+                      border: Border.all(
+                          color: DarkFeedColors.background, width: 3),
+                      color: DarkFeedColors.surface,
                     ),
                     child: Center(
                       child: Text(
@@ -648,7 +673,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: DarkFeedColors.textPrimary,
                         ),
                       ),
                     ),
@@ -661,44 +686,35 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Afinidad
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildAffinitySection(PlanModel plan) {
-    // Calcular afinidad simulada (en producción vendría del backend)
     final affinityPercentage = 85;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF9B59B6).withAlpha(26),
-            const Color(0xFF4ECDC4).withAlpha(26),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF9B59B6).withAlpha(50)),
+        border: Border.all(
+            color: DarkFeedColors.gradientViolet.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          // Porcentaje
           Container(
             width: 70,
             height: 70,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF9B59B6), Color(0xFF4ECDC4)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: DarkFeedColors.primaryGradient,
             ),
             child: Center(
               child: Text(
                 '$affinityPercentage%',
                 style: GoogleFonts.poppins(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
               ),
@@ -714,7 +730,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -731,17 +747,23 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
 
   Widget _buildAffinityItem(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(top: 2),
+      padding: const EdgeInsets.only(top: 3),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: const Color(0xFF9B59B6)),
+          ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return DarkFeedColors.primaryGradient.createShader(bounds);
+            },
+            blendMode: BlendMode.srcIn,
+            child: Icon(icon, size: 14, color: Colors.white),
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               text,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: const Color(0xFF636E72),
+                color: DarkFeedColors.textSecondary,
               ),
             ),
           ),
@@ -750,75 +772,90 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Detalles adicionales
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildAdditionalDetails(PlanModel plan) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Detalles adicionales',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF2D3436),
-          ),
-        ),
+        _buildSectionTitle(Icons.list_alt, 'Detalles adicionales'),
         const SizedBox(height: 12),
-        _buildDetailRow(
-          Icons.attach_money,
-          'Costo',
-          plan.tipoPrecio == PlanPriceType.gratis
-              ? 'Gratis'
-              : '\$${plan.precio.toStringAsFixed(0)} COP',
-        ),
-        _buildDetailRow(
-          Icons.directions,
-          'Como llegar',
-          'Parking disponible',
-        ),
-        _buildDetailRow(
-          Icons.timer,
-          'Duracion',
-          '${(plan.duracionMinutos / 60).toStringAsFixed(0)} horas',
-        ),
-        _buildDetailRow(
-          Icons.info_outline,
-          'Requisitos',
-          'Ser mayor de 18',
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: DarkFeedColors.cardBackground.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: DarkFeedColors.borderSubtle),
+          ),
+          child: Column(
+            children: [
+              _buildDetailRow(Icons.attach_money, 'Costo',
+                  plan.tipoPrecio == PlanPriceType.gratis
+                      ? 'Gratis'
+                      : '\$${plan.precio.toStringAsFixed(0)} COP'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Container(
+                    height: 1,
+                    color: DarkFeedColors.borderSubtle.withOpacity(0.5)),
+              ),
+              _buildDetailRow(
+                  Icons.directions, 'Como llegar', 'Parking disponible'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Container(
+                    height: 1,
+                    color: DarkFeedColors.borderSubtle.withOpacity(0.5)),
+              ),
+              _buildDetailRow(Icons.timer, 'Duracion',
+                  '${(plan.duracionMinutos / 60).toStringAsFixed(0)} horas'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Container(
+                    height: 1,
+                    color: DarkFeedColors.borderSubtle.withOpacity(0.5)),
+              ),
+              _buildDetailRow(
+                  Icons.info_outline, 'Requisitos', 'Ser mayor de 18'),
+            ],
+          ),
         ),
       ],
     );
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF9B59B6), size: 22),
-          const SizedBox(width: 12),
-          Text(
-            '$label: ',
+    return Row(
+      children: [
+        Icon(icon, color: DarkFeedColors.gradientViolet, size: 20),
+        const SizedBox(width: 12),
+        Text(
+          '$label: ',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: DarkFeedColors.textSecondary,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF636E72),
+              fontWeight: FontWeight.w500,
+              color: DarkFeedColors.textPrimary,
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF2D3436),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildBottomAction(PlanModel plan, bool isUserJoined, bool isOrganizer, bool isFull) {
+  // ═══════════════════════════════════════════════════════════════
+  // Boton inferior
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildBottomAction(
+      PlanModel plan, bool isUserJoined, bool isOrganizer, bool isFull) {
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -827,62 +864,74 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(51),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            DarkFeedColors.background.withOpacity(0.0),
+            DarkFeedColors.background,
+          ],
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Botón principal
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isJoining
-                  ? null
-                  : () => _handleJoinLeave(plan, isUserJoined, isOrganizer),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: isUserJoined
-                    ? const Color(0xFFFF6B6B)
-                    : (isFull ? const Color(0xFFE0E0E0) : const Color(0xFF9B59B6)),
-                disabledBackgroundColor: const Color(0xFFE0E0E0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 4,
-                shadowColor: const Color(0xFF9B59B6).withAlpha(100),
+          // Boton principal
+          GestureDetector(
+            onTap: _isJoining
+                ? null
+                : () =>
+                    _handleJoinLeave(plan, isUserJoined, isOrganizer),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                gradient: isUserJoined
+                    ? null
+                    : (isFull ? null : DarkFeedColors.primaryGradient),
+                color: isUserJoined
+                    ? DarkFeedColors.errorRed
+                    : (isFull ? DarkFeedColors.borderSubtle : null),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: (!isUserJoined && !isFull)
+                    ? [
+                        BoxShadow(
+                          color:
+                              DarkFeedColors.gradientOrange.withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
               ),
-              child: _isJoining
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
+              child: Center(
+                child: _isJoining
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Text(
+                        isOrganizer
+                            ? 'Editar plan'
+                            : (isUserJoined
+                                ? 'Salir del plan'
+                                : (isFull
+                                    ? 'Plan lleno'
+                                    : 'Unirme al plan')),
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
-                    )
-                  : Text(
-                      isOrganizer
-                          ? 'Editar plan'
-                          : (isUserJoined
-                              ? 'Salir del plan'
-                              : (isFull ? 'Plan lleno' : 'Unirme al plan')),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          // Reportar plan
+          const SizedBox(height: 10),
           if (!isOrganizer)
             GestureDetector(
               onTap: () {
@@ -892,8 +941,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                 'Reportar plan',
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: const Color(0xFF636E72),
-                  decoration: TextDecoration.underline,
+                  color: DarkFeedColors.textSecondary,
                 ),
               ),
             ),
@@ -902,7 +950,34 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
-  Future<void> _handleJoinLeave(PlanModel plan, bool isUserJoined, bool isOrganizer) async {
+  // ═══════════════════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildSectionTitle(IconData icon, String title) {
+    return Row(
+      children: [
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return DarkFeedColors.primaryGradient.createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Icon(icon, size: 20, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleJoinLeave(
+      PlanModel plan, bool isUserJoined, bool isOrganizer) async {
     if (isOrganizer) {
       // TODO: Navegar a editar plan
       return;
@@ -917,9 +992,13 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       if (userId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Debes iniciar sesion'),
-              backgroundColor: Color(0xFFFF6B6B),
+            SnackBar(
+              content: Text('Debes iniciar sesion',
+                  style: GoogleFonts.inter(color: Colors.white)),
+              backgroundColor: DarkFeedColors.errorRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         }
@@ -930,9 +1009,13 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         await repository.leavePlan(plan.id, userId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Has salido del plan'),
-              backgroundColor: Color(0xFFFF6B6B),
+            SnackBar(
+              content: Text('Has salido del plan',
+                  style: GoogleFonts.inter(color: Colors.white)),
+              backgroundColor: DarkFeedColors.errorRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         }
@@ -940,9 +1023,13 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         await repository.joinPlan(plan.id, userId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Te has unido al plan!'),
-              backgroundColor: Color(0xFF4ECDC4),
+            SnackBar(
+              content: Text('Te has unido al plan!',
+                  style: GoogleFonts.inter(color: Colors.white)),
+              backgroundColor: DarkFeedColors.greenEmerald,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         }
@@ -951,8 +1038,12 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: const Color(0xFFFF6B6B),
+            content: Text('Error: ${e.toString()}',
+                style: GoogleFonts.inter(color: Colors.white)),
+            backgroundColor: DarkFeedColors.errorRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
           ),
         );
       }

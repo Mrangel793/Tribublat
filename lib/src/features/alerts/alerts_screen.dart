@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 
 /// Pantalla de alertas/notificaciones
 class AlertsScreen extends ConsumerWidget {
@@ -9,7 +10,7 @@ class AlertsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: DarkFeedColors.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,33 +24,56 @@ class AlertsScreen extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Alertas',
-                        style: GoogleFonts.poppins(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF2D3436),
+                      ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return DarkFeedColors.primaryGradient
+                              .createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: Text(
+                          'Alertas',
+                          style: GoogleFonts.poppins(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       Text(
                         'Tus notificaciones',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: const Color(0xFF636E72),
+                          color: DarkFeedColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Marcar todas como leídas
+                  GestureDetector(
+                    onTap: () {
+                      // TODO: Marcar todas como leidas
                     },
-                    child: Text(
-                      'Marcar leidas',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF9B59B6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: DarkFeedColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: DarkFeedColors.borderSubtle),
+                      ),
+                      child: ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return DarkFeedColors.primaryGradient
+                              .createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: Text(
+                          'Marcar leidas',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -77,13 +101,26 @@ class AlertsScreen extends ConsumerWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: const Color(0xFF9B59B6).withAlpha(26),
                 shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    DarkFeedColors.gradientOrange.withOpacity(0.1),
+                    DarkFeedColors.gradientViolet.withOpacity(0.1),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-              child: const Icon(
-                Icons.notifications_none,
-                size: 50,
-                color: Color(0xFF9B59B6),
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return DarkFeedColors.primaryGradient.createShader(bounds);
+                },
+                blendMode: BlendMode.srcIn,
+                child: const Icon(
+                  Icons.notifications_none,
+                  size: 50,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -92,7 +129,7 @@ class AlertsScreen extends ConsumerWidget {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF2D3436),
+                color: DarkFeedColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -100,7 +137,7 @@ class AlertsScreen extends ConsumerWidget {
               'Te avisaremos cuando haya actividad\nen tus planes',
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: const Color(0xFF636E72),
+                color: DarkFeedColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -122,10 +159,14 @@ class AlertsScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isUnread ? const Color(0xFF9B59B6).withAlpha(13) : Colors.white,
+        color: isUnread
+            ? DarkFeedColors.gradientOrange.withOpacity(0.05)
+            : DarkFeedColors.cardBackground.withOpacity(0.6),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isUnread ? const Color(0xFF9B59B6).withAlpha(51) : const Color(0xFFE0E0E0),
+          color: isUnread
+              ? DarkFeedColors.gradientOrange.withOpacity(0.2)
+              : DarkFeedColors.borderSubtle,
         ),
       ),
       child: Row(
@@ -134,7 +175,7 @@ class AlertsScreen extends ConsumerWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: iconColor.withAlpha(26),
+              color: iconColor.withOpacity(0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 24),
@@ -149,7 +190,7 @@ class AlertsScreen extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: isUnread ? FontWeight.w600 : FontWeight.w500,
-                    color: const Color(0xFF2D3436),
+                    color: DarkFeedColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -157,7 +198,7 @@ class AlertsScreen extends ConsumerWidget {
                   subtitle,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: const Color(0xFF636E72),
+                    color: DarkFeedColors.textSecondary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -172,7 +213,7 @@ class AlertsScreen extends ConsumerWidget {
                 time,
                 style: GoogleFonts.inter(
                   fontSize: 11,
-                  color: const Color(0xFF636E72),
+                  color: DarkFeedColors.textSecondary,
                 ),
               ),
               if (isUnread) ...[
@@ -181,7 +222,7 @@ class AlertsScreen extends ConsumerWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF9B59B6),
+                    color: DarkFeedColors.gradientOrange,
                     shape: BoxShape.circle,
                   ),
                 ),
