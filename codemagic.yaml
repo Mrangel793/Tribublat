@@ -13,8 +13,9 @@ workflows:
       xcode: latest
       cocoapods: default
       groups:
-        - app_store_credentials   # Variables del App Store Connect API
+        - app_store_credentials   # APP_STORE_CONNECT_PRIVATE_KEY, KEY_IDENTIFIER, ISSUER_ID
         - firebase_ios            # GOOGLE_SERVICE_INFO_PLIST (base64)
+        - notify                  # NOTIFY_EMAIL
       vars:
         BUNDLE_ID: com.tribulat.parcheapp
         APP_STORE_APP_ID: REEMPLAZAR_CON_TU_APP_ID_EN_APP_STORE_CONNECT
@@ -59,7 +60,6 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
 
     publishing:
       app_store_connect:
@@ -69,10 +69,10 @@ workflows:
         submit_to_testflight: true
       email:
         recipients:
-          - REEMPLAZAR_CON_TU_EMAIL
+          - $NOTIFY_EMAIL
 
   # ═══════════════════════════════════════════════════════════════════
-  # Android — APK / Google Play
+  # Android — APK
   # ═══════════════════════════════════════════════════════════════════
   android-release:
     name: Android → APK
@@ -83,6 +83,7 @@ workflows:
       flutter: 3.41.5
       groups:
         - firebase_android  # GOOGLE_SERVICES_JSON (base64)
+        - notify            # NOTIFY_EMAIL
       vars:
         PACKAGE_NAME: com.tribulat.parcheapp
 
@@ -101,10 +102,7 @@ workflows:
       - name: Get Flutter packages
         script: flutter pub get
 
-      - name: Build Android APK (debug — para pruebas rápidas)
-        script: flutter build apk --debug
-
-      - name: Build Android APK (release)
+      - name: Build Android APK release
         script: |
           flutter build apk --release \
             --build-name=1.0.0 \
@@ -116,10 +114,10 @@ workflows:
     publishing:
       email:
         recipients:
-          - REEMPLAZAR_CON_TU_EMAIL
+          - $NOTIFY_EMAIL
 
   # ═══════════════════════════════════════════════════════════════════
-  # iOS — Solo desarrollo (sin TestFlight, más rápido para pruebas)
+  # iOS — Desarrollo (Ad Hoc, sin TestFlight)
   # ═══════════════════════════════════════════════════════════════════
   ios-dev:
     name: iOS → Desarrollo (Ad Hoc)
@@ -133,6 +131,7 @@ workflows:
       groups:
         - app_store_credentials
         - firebase_ios
+        - notify
       vars:
         BUNDLE_ID: com.tribulat.parcheapp
 
@@ -172,3 +171,8 @@ workflows:
 
     artifacts:
       - build/ios/ipa/*.ipa
+
+    publishing:
+      email:
+        recipients:
+          - $NOTIFY_EMAIL
