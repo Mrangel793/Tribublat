@@ -7,6 +7,51 @@ import 'package:myapp/src/features/plans/data/plan_repository.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/plans/presentation/feed/controllers/feed_controller.dart';
 
+// Banner para acceder al directorio de espacios
+Widget _buildSpacesBanner(BuildContext context) {
+  return GestureDetector(
+    onTap: () => context.push('/spaces'),
+    child: Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: DarkFeedColors.primaryGradient,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.store_rounded, color: Colors.white, size: 32),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Directorio de Espacios',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Bares, cafés, restaurantes y más para tus planes',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios,
+              color: Colors.white, size: 16),
+        ],
+      ),
+    ),
+  );
+}
+
 /// Provider para conteo de planes por categoria
 final categoryCountProvider = FutureProvider.family<int, PlanCategory>((ref, category) async {
   return ref.watch(planRepositoryProvider).getPlanCountByCategory(category);
@@ -91,6 +136,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   ],
                 ),
               ),
+            ),
+            // Directorio de espacios banner
+            SliverToBoxAdapter(
+              child: _buildSpacesBanner(context),
             ),
             // Section title
             SliverToBoxAdapter(

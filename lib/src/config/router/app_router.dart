@@ -16,6 +16,9 @@ import 'package:myapp/src/features/business/presentation/metrics/business_metric
 import 'package:myapp/src/features/admin/presentation/admin_panel_screen.dart';
 import 'package:myapp/src/features/admin/presentation/user_management_screen.dart';
 import 'package:myapp/src/features/admin/presentation/reports_screen.dart';
+import 'package:myapp/src/features/spaces/presentation/spaces_directory_screen.dart';
+import 'package:myapp/src/features/spaces/presentation/space_detail_screen.dart';
+import 'package:myapp/src/features/spaces/presentation/register_space_screen.dart';
 // Importaciones para exploracion
 import 'package:myapp/src/features/explore/category_plans_screen.dart';
 import 'package:myapp/src/features/chat/presentation/chat_screen.dart';
@@ -114,6 +117,22 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/reports',
       builder: (context, state) => const ReportsScreen(),
+    ),
+    // === DIRECTORIO DE ESPACIOS ===
+    GoRoute(
+      path: '/spaces',
+      builder: (context, state) => const SpacesDirectoryScreen(),
+    ),
+    GoRoute(
+      path: '/spaces/register',
+      builder: (context, state) => const RegisterSpaceScreen(),
+    ),
+    GoRoute(
+      path: '/spaces/:id',
+      builder: (context, state) {
+        final spaceId = state.pathParameters['id']!;
+        return SpaceDetailScreen(spaceId: spaceId);
+      },
     ),
   ],
 );
