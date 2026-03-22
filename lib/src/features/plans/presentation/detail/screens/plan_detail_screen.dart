@@ -88,6 +88,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
   Widget _buildContent(PlanModel plan) {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     final isUserJoined = plan.participantesIds.contains(currentUserId);
+    final isOnWaitlist = plan.listaEsperaIds.contains(currentUserId);
     final isOrganizer = plan.organizadorId == currentUserId;
     final isFull = plan.capacidadActual >= plan.capacidadMaxima;
     final categoryInfo = PlanConstants.getCategoryByEnum(plan.categoria);
@@ -130,7 +131,8 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _buildBottomAction(plan, isUserJoined, isOrganizer, isFull),
+          child: _buildBottomAction(
+              plan, isUserJoined, isOrganizer, isFull, isOnWaitlist),
         ),
       ],
     );
@@ -859,8 +861,8 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
   // ═══════════════════════════════════════════════════════════════
   // Boton inferior
   // ═══════════════════════════════════════════════════════════════
-  Widget _buildBottomAction(
-      PlanModel plan, bool isUserJoined, bool isOrganizer, bool isFull) {
+  Widget _buildBottomAction(PlanModel plan, bool isUserJoined, bool isOrganizer,
+      bool isFull, bool isOnWaitlist) {
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -881,22 +883,66 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Banner lista de espera
+          if (isOnWaitlist)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFB347).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: const Color(0xFFFFB347).withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.queue_outlined,
+                      size: 18, color: Color(0xFFFFB347)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Estás en la lista de espera. Te avisaremos si se libera un cupo.',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: const Color(0xFFFFB347),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _confirmCancelWaitlist(plan),
+                    child: Text(
+                      'Salir',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFFFB347),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Boton principal
           GestureDetector(
             onTap: _isJoining
                 ? null
-                : () =>
-                    _handleJoinLeave(plan, isUserJoined, isOrganizer),
+                : () => isUserJoined
+                    ? _confirmLeave(plan)
+                    : _handleJoinLeave(plan, isUserJoined, isOrganizer),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                gradient: isUserJoined
+                gradient: (isUserJoined || isOnWaitlist || isFull)
                     ? null
-                    : (isFull ? null : DarkFeedColors.primaryGradient),
+                    : DarkFeedColors.primaryGradient,
                 color: isUserJoined
                     ? DarkFeedColors.errorRed
-                    : (isFull ? DarkFeedColors.borderSubtle : null),
+                    : (isOnWaitlist
+                        ? const Color(0xFFFFB347)
+                        : (isFull ? DarkFeedColors.borderSubtle : null)),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: (!isUserJoined && !isFull)
                     ? [
@@ -923,10 +969,12 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                         isOrganizer
                             ? 'Editar plan'
                             : (isUserJoined
-                                ? 'Salir del plan'
-                                : (isFull
-                                    ? 'Plan lleno'
-                                    : 'Unirme al plan')),
+                                ? 'Cancelar asistencia'
+                                : (isOnWaitlist
+                                    ? 'En lista de espera'
+                                    : (isFull
+                                        ? 'Plan lleno'
+                                        : 'Unirme al plan'))),
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -1212,6 +1260,99 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _confirmLeave(PlanModel plan) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: DarkFeedColors.surface,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          '¿Cancelar asistencia?',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Si cancelas, perderás tu cupo en "${plan.titulo}". Si hay lista de espera, tu lugar pasará al siguiente.',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: DarkFeedColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Quedarme',
+              style: GoogleFonts.inter(color: DarkFeedColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _handleJoinLeave(plan, true, false);
+            },
+            child: Text(
+              'Cancelar asistencia',
+              style: GoogleFonts.inter(
+                color: DarkFeedColors.errorRed,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCancelWaitlist(PlanModel plan) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: DarkFeedColors.surface,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          '¿Salir de la lista de espera?',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: DarkFeedColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Perderás tu lugar en la lista de espera de "${plan.titulo}".',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: DarkFeedColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar',
+                style: GoogleFonts.inter(
+                    color: DarkFeedColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _handleJoinLeave(plan, false, false);
+            },
+            child: Text(
+              'Salir de lista',
+              style: GoogleFonts.inter(
+                color: DarkFeedColors.errorRed,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
