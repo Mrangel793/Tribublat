@@ -15,6 +15,7 @@ import 'package:myapp/src/features/splash/splash_screen.dart';
 import 'package:myapp/src/features/business/presentation/metrics/business_metrics_screen.dart';
 import 'package:myapp/src/features/admin/presentation/admin_panel_screen.dart';
 import 'package:myapp/src/features/admin/presentation/user_management_screen.dart';
+import 'package:myapp/src/features/admin/presentation/reports_screen.dart';
 // Importaciones para exploracion
 import 'package:myapp/src/features/explore/category_plans_screen.dart';
 import 'package:myapp/src/features/chat/presentation/chat_screen.dart';
@@ -109,6 +110,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/users',
       builder: (context, state) => const UserManagementScreen(),
+    ),
+    GoRoute(
+      path: '/admin/reports',
+      builder: (context, state) => const ReportsScreen(),
     ),
   ],
 );

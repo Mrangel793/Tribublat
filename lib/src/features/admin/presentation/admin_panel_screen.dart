@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:myapp/src/features/reports/data/report_repository.dart';
 
 /// Pantalla principal del panel de administracion
 class AdminPanelScreen extends ConsumerWidget {
@@ -95,14 +96,21 @@ class AdminPanelScreen extends ConsumerWidget {
                 _showComingSoon(context);
               },
             ),
-            _buildAdminOption(
-              context,
-              icon: Icons.flag,
-              title: 'Reportes',
-              subtitle: 'Ver reportes de usuarios y planes',
-              color: const Color(0xFFFFB347),
-              onTap: () {
-                _showComingSoon(context);
+            Consumer(
+              builder: (context, ref, _) {
+                final countAsync = ref.watch(newReportsCountProvider);
+                final count = countAsync.valueOrNull ?? 0;
+                return _buildAdminOption(
+                  context,
+                  icon: Icons.flag,
+                  title: 'Reportes',
+                  subtitle: count > 0
+                      ? '$count nuevos reportes pendientes'
+                      : 'Ver reportes de usuarios',
+                  color: const Color(0xFFFFB347),
+                  badge: count > 0 ? count.toString() : null,
+                  onTap: () => context.push('/admin/reports'),
+                );
               },
             ),
             _buildAdminOption(
@@ -213,6 +221,7 @@ class AdminPanelScreen extends ConsumerWidget {
     required String subtitle,
     required Color color,
     required VoidCallback onTap,
+    String? badge,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -221,7 +230,7 @@ class AdminPanelScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
           ),
         ],
@@ -231,7 +240,7 @@ class AdminPanelScreen extends ConsumerWidget {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color),
@@ -251,7 +260,30 @@ class AdminPanelScreen extends ConsumerWidget {
             color: const Color(0xFF636E72),
           ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: Color(0xFF636E72)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (badge != null)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B6B),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            if (badge != null) const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: Color(0xFF636E72)),
+          ],
+        ),
         onTap: onTap,
       ),
     );

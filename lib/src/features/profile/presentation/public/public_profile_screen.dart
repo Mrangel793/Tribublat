@@ -9,6 +9,7 @@ import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/user/data/user_repository.dart';
 import 'package:myapp/src/features/user/domain/interests_constants.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
+import 'package:myapp/src/features/reports/presentation/report_form_sheet.dart';
 
 class PublicProfileScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -818,7 +819,18 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                   color: DarkFeedColors.textSecondary),
               title: Text('Reportar usuario',
                   style: GoogleFonts.inter(color: DarkFeedColors.textPrimary)),
-              onTap: () => Navigator.pop(ctx),
+              onTap: () {
+                Navigator.pop(ctx);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => ReportFormSheet(
+                    reportedUserId: widget.userId,
+                    reportedUserName: _otherUser?.nombre ?? 'Usuario',
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.block_outlined,
