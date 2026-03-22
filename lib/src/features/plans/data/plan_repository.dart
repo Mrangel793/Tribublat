@@ -550,3 +550,9 @@ class PlanRepository {
 final planRepositoryProvider = Provider<PlanRepository>((ref) {
   return PlanRepository(FirebaseFirestore.instance);
 });
+
+/// Provider para obtener un plan en tiempo real
+final planStreamProvider =
+    StreamProvider.family<PlanModel?, String>((ref, planId) {
+  return ref.watch(planRepositoryProvider).watchPlan(planId);
+});

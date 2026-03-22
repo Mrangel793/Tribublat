@@ -1435,7 +1435,4 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
   }
 }
 
-/// Provider para obtener un plan en tiempo real
-final planStreamProvider = StreamProvider.family<PlanModel?, String>((ref, planId) {
-  return ref.watch(planRepositoryProvider).watchPlan(planId);
-});
+// planStreamProvider está definido en plan_repository.dart
