@@ -69,7 +69,7 @@ workflows:
         submit_to_testflight: true
       email:
         recipients:
-          - $NOTIFY_EMAIL
+          - $NOTIFYEMAIL
 
   # ═══════════════════════════════════════════════════════════════════
   # Android — APK
@@ -114,7 +114,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - $NOTIFY_EMAIL
+          - $NOTIFYEMAIL
 
   # ═══════════════════════════════════════════════════════════════════
   # iOS — Desarrollo (Ad Hoc, sin TestFlight)
@@ -175,4 +175,4 @@ workflows:
     publishing:
       email:
         recipients:
-          - $NOTIFY_EMAIL
+          - $NOTIFYEMAIL
