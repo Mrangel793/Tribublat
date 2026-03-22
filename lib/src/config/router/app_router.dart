@@ -17,6 +17,7 @@ import 'package:myapp/src/features/admin/presentation/admin_panel_screen.dart';
 import 'package:myapp/src/features/admin/presentation/user_management_screen.dart';
 // Importaciones para exploracion
 import 'package:myapp/src/features/explore/category_plans_screen.dart';
+import 'package:myapp/src/features/chat/presentation/chat_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -54,6 +55,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final planId = state.pathParameters['id']!;
         return PlanDetailScreen(planId: planId);
+      },
+    ),
+    GoRoute(
+      path: '/plan/:id/chat',
+      builder: (context, state) {
+        final planId = state.pathParameters['id']!;
+        return ChatScreen(planId: planId);
       },
     ),
     // === RUTAS DE EXPLORACION ===

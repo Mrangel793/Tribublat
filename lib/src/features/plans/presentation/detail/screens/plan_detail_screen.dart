@@ -9,6 +9,9 @@ import 'package:myapp/src/features/plans/data/plan_repository.dart';
 import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/src/features/reviews/data/review_repository.dart';
+import 'package:myapp/src/features/reviews/domain/review_model.dart';
+import 'package:myapp/src/features/reviews/presentation/review_form_sheet.dart';
 
 /// Pantalla de detalle de un plan
 class PlanDetailScreen extends ConsumerStatefulWidget {
@@ -114,6 +117,8 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                     if (!isOrganizer) _buildAffinitySection(plan),
                     if (!isOrganizer) const SizedBox(height: 24),
                     _buildAdditionalDetails(plan),
+                    const SizedBox(height: 24),
+                    _buildReviewsSection(plan),
                     const SizedBox(height: 140),
                   ],
                 ),
@@ -931,6 +936,82 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
               ),
             ),
           ),
+          // Botón "Dejar reseña" (solo participantes después del evento)
+          if (isUserJoined &&
+              plan.fechaHora.isBefore(DateTime.now())) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => _showReviewSheet(plan),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.star_outline_rounded,
+                        size: 20, color: Color(0xFFFFD700)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Dejar reseña',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFFFD700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          // Botón de chat (solo participantes y organizador)
+          if (isUserJoined || isOrganizer) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => context.push('/plan/${plan.id}/chat'),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: DarkFeedColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: DarkFeedColors.borderSubtle),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (bounds) =>
+                          DarkFeedColors.primaryGradient.createShader(bounds),
+                      blendMode: BlendMode.srcIn,
+                      child: const Icon(Icons.chat_bubble_outline,
+                          size: 20, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
+                    ShaderMask(
+                      shaderCallback: (bounds) =>
+                          DarkFeedColors.primaryGradient.createShader(bounds),
+                      blendMode: BlendMode.srcIn,
+                      child: Text(
+                        'Chat del plan',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           if (!isOrganizer)
             GestureDetector(
@@ -946,6 +1027,164 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // Reseñas
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildReviewsSection(PlanModel plan) {
+    final reviewsAsync = ref.watch(planReviewsProvider(plan.id));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildSectionTitle(Icons.star_rounded, 'Reseñas'),
+            const SizedBox(width: 8),
+            if (plan.puntuacionPromedio > 0) ...[
+              Text(
+                plan.puntuacionPromedio.toStringAsFixed(1),
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFFFD700),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.star_rounded,
+                  size: 20, color: Color(0xFFFFD700)),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        reviewsAsync.when(
+          loading: () => const SizedBox(
+            height: 60,
+            child: Center(
+                child: CircularProgressIndicator(
+                    color: DarkFeedColors.gradientOrange)),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (reviews) {
+            if (reviews.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: DarkFeedColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: DarkFeedColors.borderSubtle),
+                ),
+                child: Text(
+                  'Sin reseñas todavía. ¡Sé el primero en opinar!',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: DarkFeedColors.textSecondary,
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: reviews
+                  .take(3)
+                  .map((r) => _buildReviewItem(r))
+                  .toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewItem(ReviewModel review) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: DarkFeedColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: DarkFeedColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor:
+                    DarkFeedColors.gradientViolet.withValues(alpha: 0.3),
+                child: Text(
+                  review.userName.isNotEmpty
+                      ? review.userName[0].toUpperCase()
+                      : '?',
+                  style: GoogleFonts.inter(
+                      fontSize: 14, color: Colors.white),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.userName,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: DarkFeedColors.textPrimary,
+                      ),
+                    ),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          i < review.rating
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          size: 14,
+                          color: const Color(0xFFFFD700),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${review.fechaCreacion.day}/${review.fechaCreacion.month}',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: DarkFeedColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          if (review.comentario.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              review.comentario,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: DarkFeedColors.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showReviewSheet(PlanModel plan) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ReviewFormSheet(
+        planId: plan.id,
+        planTitulo: plan.titulo,
       ),
     );
   }

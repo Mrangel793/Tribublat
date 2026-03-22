@@ -1,0 +1,174 @@
+workflows:
+
+  # ═══════════════════════════════════════════════════════════════════
+  # iOS — TestFlight
+  # ═══════════════════════════════════════════════════════════════════
+  ios-release:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: 3.41.5
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_credentials   # Variables del App Store Connect API
+        - firebase_ios            # GOOGLE_SERVICE_INFO_PLIST (base64)
+      vars:
+        BUNDLE_ID: com.tribulat.parcheapp
+        APP_STORE_APP_ID: REEMPLAZAR_CON_TU_APP_ID_EN_APP_STORE_CONNECT
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: master
+          include: true
+
+    scripts:
+      - name: Set up GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install
+        working_directory: $CM_BUILD_DIR
+
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            $BUNDLE_ID \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Build iOS release
+        script: |
+          flutter build ipa \
+            --release \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+      email:
+        recipients:
+          - REEMPLAZAR_CON_TU_EMAIL
+
+  # ═══════════════════════════════════════════════════════════════════
+  # Android — APK / Google Play
+  # ═══════════════════════════════════════════════════════════════════
+  android-release:
+    name: Android → APK
+    max_build_duration: 30
+    instance_type: linux_x2
+
+    environment:
+      flutter: 3.41.5
+      groups:
+        - firebase_android  # GOOGLE_SERVICES_JSON (base64)
+      vars:
+        PACKAGE_NAME: com.tribulat.parcheapp
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: master
+          include: true
+
+    scripts:
+      - name: Set up google-services.json
+        script: |
+          echo $GOOGLE_SERVICES_JSON | base64 --decode > $CM_BUILD_DIR/android/app/google-services.json
+
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Build Android APK (debug — para pruebas rápidas)
+        script: flutter build apk --debug
+
+      - name: Build Android APK (release)
+        script: |
+          flutter build apk --release \
+            --build-name=1.0.0 \
+            --build-number=$BUILD_NUMBER
+
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+
+    publishing:
+      email:
+        recipients:
+          - REEMPLAZAR_CON_TU_EMAIL
+
+  # ═══════════════════════════════════════════════════════════════════
+  # iOS — Solo desarrollo (sin TestFlight, más rápido para pruebas)
+  # ═══════════════════════════════════════════════════════════════════
+  ios-dev:
+    name: iOS → Desarrollo (Ad Hoc)
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: 3.41.5
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_credentials
+        - firebase_ios
+      vars:
+        BUNDLE_ID: com.tribulat.parcheapp
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: develop
+          include: true
+
+    scripts:
+      - name: Set up GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Install CocoaPods
+        script: |
+          cd ios && pod install
+
+      - name: Set up Ad Hoc signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            $BUNDLE_ID \
+            --type IOS_APP_ADHOC \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Build iOS Ad Hoc
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa

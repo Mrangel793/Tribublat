@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║  ARCHIVO PLACEHOLDER — REEMPLAZAR ANTES DE COMPILAR EN iOS          ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+
+  Pasos para obtener el archivo real:
+  1. Ve a https://console.firebase.google.com
+  2. Selecciona el proyecto "tribulat-397a5"
+  3. Clic en "Agregar app" → iOS
+  4. Bundle ID: com.tribulat.parcheapp
+  5. Descarga el GoogleService-Info.plist generado
+  6. REEMPLAZA este archivo con el descargado
+  7. Copia el valor de REVERSED_CLIENT_ID al Info.plist
+     en CFBundleURLSchemes (busca "REEMPLAZAR_CON_REVERSED_CLIENT_ID")
+  8. Copia API_KEY y GOOGLE_APP_ID al firebase_options.dart
+     (busca los comentarios "REEMPLAZAR_CON_...")
+-->
+<dict>
+  <key>CLIENT_ID</key>
+  <string>REEMPLAZAR</string>
+  <key>REVERSED_CLIENT_ID</key>
+  <string>REEMPLAZAR</string>
+  <key>API_KEY</key>
+  <string>REEMPLAZAR</string>
+  <key>GCM_SENDER_ID</key>
+  <string>768480369704</string>
+  <key>PLIST_VERSION</key>
+  <string>1</string>
+  <key>BUNDLE_ID</key>
+  <string>com.tribulat.parcheapp</string>
+  <key>PROJECT_ID</key>
+  <string>tribulat-397a5</string>
+  <key>STORAGE_BUCKET</key>
+  <string>tribulat-397a5.firebasestorage.app</string>
+  <key>IS_ADS_ENABLED</key>
+  <false/>
+  <key>IS_ANALYTICS_ENABLED</key>
+  <false/>
+  <key>IS_APPINVITE_ENABLED</key>
+  <true/>
+  <key>IS_GCM_ENABLED</key>
+  <true/>
+  <key>IS_SIGNIN_ENABLED</key>
+  <true/>
+  <key>GOOGLE_APP_ID</key>
+  <string>REEMPLAZAR</string>
+</dict>
+</plist>

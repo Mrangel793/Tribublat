@@ -172,6 +172,18 @@ class UserRepository {
     return await _databaseRepository.isProfileComplete(userId);
   }
 
+  /// Guarda el token de FCM del usuario en Firestore
+  Future<void> saveFcmToken(String userId, String token) async {
+    try {
+      await _databaseRepository.updateUserFields(userId, {
+        'fcmToken': token,
+        'fcmTokenUpdatedAt': DateTime.now().toIso8601String(),
+      });
+    } catch (_) {
+      // No lanzar excepción — el token es best-effort
+    }
+  }
+
   /// Sube fotos adicionales al perfil
   Future<List<String>> uploadAdditionalPhotos(
     String userId,

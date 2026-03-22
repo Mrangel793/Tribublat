@@ -224,6 +224,25 @@ class PlanRepository {
         'participantesIds': FieldValue.arrayUnion([userId]),
         'capacidadActual': FieldValue.increment(1),
       });
+
+      // Guardar notificación de confirmación para el usuario
+      final planTitulo = planData['titulo'] as String? ?? 'el plan';
+      final notifRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc();
+      transaction.set(notifRef, {
+        'id': notifRef.id,
+        'userId': userId,
+        'tipo': 'asistenciaConfirmada',
+        'titulo': '¡Asistencia confirmada!',
+        'cuerpo': 'Te uniste a "$planTitulo". ¡Nos vemos ahí!',
+        'planId': planId,
+        'planTitulo': planTitulo,
+        'fechaCreacion': DateTime.now().toIso8601String(),
+        'leida': false,
+      });
     });
   }
 
@@ -260,10 +279,28 @@ class PlanRepository {
       // Promover al primero de la lista de espera si existe
       if (listaEspera.isNotEmpty) {
         final nextUser = listaEspera.first;
+        final planTitulo = planData['titulo'] as String? ?? 'el plan';
         transaction.update(_plansRef.doc(planId), {
           'listaEsperaIds': FieldValue.arrayRemove([nextUser]),
           'participantesIds': FieldValue.arrayUnion([nextUser]),
           'capacidadActual': FieldValue.increment(1),
+        });
+        // Notificar al usuario promovido
+        final promotedNotifRef = _firestore
+            .collection('users')
+            .doc(nextUser)
+            .collection('notifications')
+            .doc();
+        transaction.set(promotedNotifRef, {
+          'id': promotedNotifRef.id,
+          'userId': nextUser,
+          'tipo': 'listaEspera',
+          'titulo': '¡Tienes un cupo disponible!',
+          'cuerpo': 'Se liberó un lugar en "$planTitulo". ¡Ya eres participante!',
+          'planId': planId,
+          'planTitulo': planTitulo,
+          'fechaCreacion': DateTime.now().toIso8601String(),
+          'leida': false,
         });
       }
     });

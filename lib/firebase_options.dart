@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -57,6 +54,24 @@ class DefaultFirebaseOptions {
     authDomain: 'parcheapp-f1e9f.firebaseapp.com',
     storageBucket: 'parcheapp-f1e9f.firebasestorage.app',
     measurementId: 'G-N9WXBZESKZ',
+  );
+
+  // INSTRUCCIONES iOS:
+  // 1. Ve a Firebase Console → Proyecto → Agregar app → iOS
+  // 2. Bundle ID: com.tribulat.parcheapp (el que configures en Xcode)
+  // 3. Descarga GoogleService-Info.plist y colócalo en ios/Runner/
+  // 4. Reemplaza los valores de ios abajo con los del GoogleService-Info.plist:
+  //    apiKey     → API_KEY
+  //    appId      → GOOGLE_APP_ID
+  //    clientId   → CLIENT_ID
+  //    iosClientId → REVERSED_CLIENT_ID (también va en Info.plist CFBundleURLSchemes)
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'REEMPLAZAR_CON_API_KEY_DE_GOOGLESERVICE_INFO',
+    appId: 'REEMPLAZAR_CON_GOOGLE_APP_ID',
+    messagingSenderId: '768480369704',
+    projectId: 'tribulat-397a5',
+    storageBucket: 'tribulat-397a5.firebasestorage.app',
+    iosBundleId: 'com.tribulat.parcheapp',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
