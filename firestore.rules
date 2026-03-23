@@ -2,7 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
@@ -16,61 +15,102 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'admin';
     }
 
-    // Validar tamaño del documento (máximo 1MB por limitación de Firestore)
-    function isValidDocumentSize() {
-      return request.resource.size() < 1048576; // 1MB en bytes
+    function isBusiness() {
+      return isSignedIn() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'negocio';
     }
 
-    // Reglas para la colección de usuarios
-    match /users/{userId} {
-      // Cualquier usuario autenticado puede leer perfiles públicos
-      allow read: if isSignedIn();
+    function isValidDocumentSize() {
+      return request.resource.size() < 1048576;
+    }
 
-      // Solo el dueño puede crear su propio perfil
-      allow create: if isSignedIn() &&
-                       isOwner(userId) &&
+    // ── Usuarios ──────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId) &&
                        request.resource.data.id == userId &&
                        isValidDocumentSize();
-
-      // Solo el dueño puede actualizar su propio perfil
-      // Proteger campos sensibles: no puede cambiar id, rol (solo admin)
-      allow update: if isSignedIn() &&
-                       isOwner(userId) &&
-                       request.resource.data.id == resource.data.id &&
-                       isValidDocumentSize();
-
-      // Solo el dueño o admin pueden eliminar
+      allow update: if isSignedIn() && (
+        (isOwner(userId) && request.resource.data.id == resource.data.id) ||
+        isAdmin()
+      ) && isValidDocumentSize();
       allow delete: if isOwner(userId) || isAdmin();
+
+      // Notificaciones del usuario
+      match /notifications/{notifId} {
+        allow read: if isSignedIn() && isOwner(userId);
+        allow create: if isSignedIn();
+        allow update: if isSignedIn() && isOwner(userId);
+        allow delete: if isSignedIn() && isOwner(userId);
+      }
     }
 
-    // Reglas para la colección de planes
+    // ── Planes ────────────────────────────────────────────────────
     match /plans/{planId} {
-      // Helper para verificar si es organizador del plan
       function isPlanOrganizer() {
         return resource.data.organizadorId == request.auth.uid;
       }
 
-      // Cualquier usuario autenticado puede leer planes
       allow read: if isSignedIn();
-
-      // Solo usuarios autenticados pueden crear planes
       allow create: if isSignedIn() &&
                        request.resource.data.organizadorId == request.auth.uid;
-
-      // Actualizaciones: organizador o participantes (para join/leave)
       allow update: if isSignedIn() && (
-        // Organizador puede actualizar
         isPlanOrganizer() ||
-        // Cualquier usuario puede unirse/salir (modificar arrays de participantes)
+        isAdmin() ||
         request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['participantesIds', 'listaEsperaIds', 'capacidadActual'])
+          .hasOnly(['participantesIds', 'listaEsperaIds', 'capacidadActual',
+                    'puntuacionPromedio', 'totalResenas'])
       );
-
-      // Solo organizador o admin pueden eliminar
       allow delete: if isPlanOrganizer() || isAdmin();
+
+      // Mensajes del chat
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update: if isSignedIn() && (
+          resource.data.userId == request.auth.uid ||
+          get(/databases/$(database)/documents/plans/$(planId)).data.organizadorId == request.auth.uid
+        );
+        allow delete: if isAdmin();
+      }
+
+      // Reseñas del plan
+      match /reviews/{reviewId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isAdmin();
+      }
     }
 
-    // Reglas por defecto: denegar todo lo demás
+    // ── Directorio de espacios ────────────────────────────────────
+    match /spaces/{spaceId} {
+      // Cualquier usuario autenticado puede ver espacios aprobados
+      allow read: if isSignedIn();
+
+      // Solo negocios o admins pueden crear espacios
+      allow create: if isSignedIn() && (isBusiness() || isAdmin()) &&
+                       request.resource.data.negocioId == request.auth.uid;
+
+      // El dueño puede actualizar su espacio; admin puede actualizar cualquiera
+      allow update: if isSignedIn() && (
+        resource.data.negocioId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ── Reportes ──────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn() &&
+                       request.resource.data.reporterId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Regla por defecto ─────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }

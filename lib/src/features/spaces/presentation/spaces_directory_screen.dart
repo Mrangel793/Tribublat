@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:myapp/src/common/theme/dark_feed_colors.dart';
 import 'package:myapp/src/features/spaces/data/space_repository.dart';
 import 'package:myapp/src/features/spaces/domain/business_space_model.dart';
+import 'package:myapp/src/features/user/data/user_repository.dart';
+import 'package:myapp/src/features/user/domain/user_model.dart';
 
 class SpacesDirectoryScreen extends ConsumerStatefulWidget {
   const SpacesDirectoryScreen({super.key});
@@ -73,14 +76,34 @@ class _SpacesDirectoryScreenState
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/spaces/register'),
-        backgroundColor: DarkFeedColors.gradientViolet,
-        icon: const Icon(Icons.add_business, color: Colors.white),
-        label: Text('Registrar local',
-            style: GoogleFonts.inter(
-                color: Colors.white, fontWeight: FontWeight.w600)),
-      ),
+      floatingActionButton: _buildRegisterButton(context),
+    );
+  }
+
+  Widget? _buildRegisterButton(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) return null;
+
+    final userAsync = ref.watch(
+      StreamProvider((ref) =>
+          ref.watch(userRepositoryProvider).userProfileStream(currentUserId)),
+    );
+
+    final user = userAsync.valueOrNull;
+    if (user == null) return null;
+
+    // Solo negocios y admins pueden registrar espacios
+    if (user.rol != UserRole.negocio && user.rol != UserRole.admin) {
+      return null;
+    }
+
+    return FloatingActionButton.extended(
+      onPressed: () => context.push('/spaces/register'),
+      backgroundColor: DarkFeedColors.gradientViolet,
+      icon: const Icon(Icons.add_business, color: Colors.white),
+      label: Text('Registrar local',
+          style: GoogleFonts.inter(
+              color: Colors.white, fontWeight: FontWeight.w600)),
     );
   }
 
