@@ -61,6 +61,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Correo o contraseña incorrectos.',
+                style: TextStyle(color: Colors.white)),
+            backgroundColor: DarkFeedColors.errorRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12))),
+          ),
+        );
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }

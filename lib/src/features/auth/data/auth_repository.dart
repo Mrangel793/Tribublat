@@ -109,22 +109,27 @@ class AuthRepository {
   AuthException _handleAuthError(String code) {
     switch (code) {
       case 'invalid-email':
-        return AuthException('The email address is not valid.');
+        return AuthException('El correo electrónico no es válido.');
       case 'user-disabled':
-        return AuthException('This user has been disabled.');
+        return AuthException('Esta cuenta ha sido deshabilitada.');
       case 'user-not-found':
-        return AuthException('User not found. Please sign up.');
       case 'wrong-password':
-        return AuthException('Incorrect password. Please try again.');
+      case 'invalid-credential':
+        // Firebase moderno unifica estos errores en 'invalid-credential'
+        // No especificamos cuál falló por seguridad
+        return AuthException('Correo o contraseña incorrectos. Verifícalos e intenta de nuevo.');
       case 'email-already-in-use':
-        return AuthException(
-            'This email is already in use by another account.');
+        return AuthException('Este correo ya está registrado. Intenta iniciar sesión.');
       case 'operation-not-allowed':
-        return AuthException('This operation is not allowed.');
+        return AuthException('Este método de inicio de sesión no está habilitado.');
       case 'weak-password':
-        return AuthException('The password is too weak.');
+        return AuthException('La contraseña es muy débil. Usa al menos 6 caracteres.');
+      case 'too-many-requests':
+        return AuthException('Demasiados intentos fallidos. Espera unos minutos e intenta de nuevo.');
+      case 'network-request-failed':
+        return AuthException('Sin conexión a internet. Verifica tu red e intenta de nuevo.');
       default:
-        return AuthException('An unknown error occurred.');
+        return AuthException('Ocurrió un error inesperado. Intenta de nuevo.');
     }
   }
 }
