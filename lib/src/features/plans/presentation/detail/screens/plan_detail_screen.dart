@@ -93,6 +93,15 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     final isFull = plan.capacidadActual >= plan.capacidadMaxima;
     final categoryInfo = PlanConstants.getCategoryByEnum(plan.categoria);
 
+    // Solicitudes pendientes (leídas de Firestore directamente)
+    final solicitudesAsync = ref.watch(
+      StreamProvider((ref) => ref
+          .read(planRepositoryProvider)
+          .watchSolicitudes(plan.id)),
+    );
+    final solicitudes = solicitudesAsync.valueOrNull ?? [];
+    final isUserPending = solicitudes.contains(currentUserId);
+
     return Stack(
       children: [
         CustomScrollView(
@@ -114,6 +123,11 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                     _buildOrganizerSection(plan),
                     const SizedBox(height: 24),
                     _buildParticipantsSection(plan),
+                    // Sección de solicitudes (solo para el organizador)
+                    if (isOrganizer && solicitudes.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      _buildSolicitudesSection(plan, solicitudes),
+                    ],
                     const SizedBox(height: 24),
                     if (!isOrganizer) _buildAffinitySection(plan),
                     if (!isOrganizer) const SizedBox(height: 24),
@@ -132,7 +146,8 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           right: 0,
           bottom: 0,
           child: _buildBottomAction(
-              plan, isUserJoined, isOrganizer, isFull, isOnWaitlist),
+              plan, isUserJoined, isOrganizer, isFull, isOnWaitlist,
+              isUserPending: isUserPending),
         ),
       ],
     );
@@ -862,7 +877,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
   // Boton inferior
   // ═══════════════════════════════════════════════════════════════
   Widget _buildBottomAction(PlanModel plan, bool isUserJoined, bool isOrganizer,
-      bool isFull, bool isOnWaitlist) {
+      bool isFull, bool isOnWaitlist, {bool isUserPending = false}) {
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -926,7 +941,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
             ),
           // Boton principal
           GestureDetector(
-            onTap: _isJoining
+            onTap: (_isJoining || isUserPending)
                 ? null
                 : () => isUserJoined
                     ? _confirmLeave(plan)
@@ -935,14 +950,16 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                gradient: (isUserJoined || isOnWaitlist || isFull)
+                gradient: (isUserJoined || isOnWaitlist || isFull || isUserPending)
                     ? null
                     : DarkFeedColors.primaryGradient,
                 color: isUserJoined
                     ? DarkFeedColors.errorRed
-                    : (isOnWaitlist
-                        ? const Color(0xFFFFB347)
-                        : (isFull ? DarkFeedColors.borderSubtle : null)),
+                    : (isUserPending
+                        ? DarkFeedColors.gradientViolet
+                        : (isOnWaitlist
+                            ? const Color(0xFFFFB347)
+                            : (isFull ? DarkFeedColors.borderSubtle : null))),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: (!isUserJoined && !isFull)
                     ? [
@@ -970,11 +987,15 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                             ? 'Editar plan'
                             : (isUserJoined
                                 ? 'Cancelar asistencia'
-                                : (isOnWaitlist
-                                    ? 'En lista de espera'
-                                    : (isFull
-                                        ? 'Plan lleno'
-                                        : 'Unirme al plan'))),
+                                : (isUserPending
+                                    ? 'Solicitud enviada ⏳'
+                                    : (isOnWaitlist
+                                        ? 'En lista de espera'
+                                        : (isFull
+                                            ? 'Plan lleno'
+                                            : plan.requiereAprobacion
+                                                ? 'Solicitar asistencia'
+                                                : 'Unirme al plan')))),
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -1225,6 +1246,170 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Solicitudes pendientes (solo organizador)
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildSolicitudesSection(PlanModel plan, List<String> solicitudes) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildSectionTitle(Icons.pending_actions, 'Solicitudes'),
+            const SizedBox(width: 8),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: DarkFeedColors.gradientOrange.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${solicitudes.length}',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: DarkFeedColors.gradientOrange,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Personas que quieren unirse a tu plan',
+          style: GoogleFonts.inter(
+              fontSize: 12, color: DarkFeedColors.textSecondary),
+        ),
+        const SizedBox(height: 12),
+        ...solicitudes.map((userId) => _buildSolicitudItem(plan, userId)),
+      ],
+    );
+  }
+
+  Widget _buildSolicitudItem(PlanModel plan, String userId) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: DarkFeedColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: DarkFeedColors.gradientOrange.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor:
+                DarkFeedColors.gradientViolet.withValues(alpha: 0.3),
+            child: const Icon(Icons.person,
+                color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Usuario solicitante',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: DarkFeedColors.textPrimary,
+              ),
+            ),
+          ),
+          // Botón rechazar
+          GestureDetector(
+            onTap: () => _rejectSolicitud(plan, userId),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: DarkFeedColors.errorRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                    color: DarkFeedColors.errorRed.withValues(alpha: 0.4)),
+              ),
+              child: Text(
+                'Rechazar',
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: DarkFeedColors.errorRed,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Botón aprobar
+          GestureDetector(
+            onTap: () => _approveSolicitud(plan, userId),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: DarkFeedColors.greenEmerald.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                    color: DarkFeedColors.greenEmerald.withValues(alpha: 0.4)),
+              ),
+              child: Text(
+                'Aprobar',
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: DarkFeedColors.greenEmerald,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _approveSolicitud(PlanModel plan, String userId) async {
+    try {
+      await ref
+          .read(planRepositoryProvider)
+          .approveSolicitud(plan.id, userId, '');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Solicitud aprobada',
+              style: GoogleFonts.inter(color: Colors.white)),
+          backgroundColor: DarkFeedColors.greenEmerald,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $e',
+              style: GoogleFonts.inter(color: Colors.white)),
+          backgroundColor: DarkFeedColors.errorRed,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
+    }
+  }
+
+  Future<void> _rejectSolicitud(PlanModel plan, String userId) async {
+    await ref
+        .read(planRepositoryProvider)
+        .rejectSolicitud(plan.id, userId, plan.titulo);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Solicitud rechazada',
+            style: GoogleFonts.inter(color: Colors.white)),
+        backgroundColor: DarkFeedColors.errorRed,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
+  }
+
   void _showReviewSheet(PlanModel plan) {
     showModalBottomSheet(
       context: context,
@@ -1400,18 +1585,38 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           );
         }
       } else {
-        await repository.joinPlan(plan.id, userId);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Te has unido al plan!',
-                  style: GoogleFonts.inter(color: Colors.white)),
-              backgroundColor: DarkFeedColors.greenEmerald,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-          );
+        try {
+          await repository.joinPlan(plan.id, userId);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('¡Te has unido al plan!',
+                    style: GoogleFonts.inter(color: Colors.white)),
+                backgroundColor: DarkFeedColors.greenEmerald,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            );
+          }
+        } catch (e) {
+          if (e.toString() == 'SOLICITUD_ENVIADA') {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      '¡Solicitud enviada! El coordinador la revisará pronto.',
+                      style: GoogleFonts.inter(color: Colors.white)),
+                  backgroundColor: DarkFeedColors.gradientViolet,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              );
+            }
+          } else {
+            rethrow;
+          }
         }
       }
     } catch (e) {

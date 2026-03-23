@@ -59,7 +59,7 @@ service cloud.firestore {
         isAdmin() ||
         request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['participantesIds', 'listaEsperaIds', 'capacidadActual',
-                    'puntuacionPromedio', 'totalResenas'])
+                    'solicitudesIds', 'puntuacionPromedio', 'totalResenas'])
       );
       allow delete: if isPlanOrganizer() || isAdmin();
 

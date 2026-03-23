@@ -188,7 +188,7 @@ class PlanRepository {
 
   // ============ OPERACIONES DE ESCRITURA ============
 
-  /// Unirse a un plan
+  /// Unirse a un plan (o enviar solicitud si requiere aprobación)
   Future<void> joinPlan(String planId, String userId) async {
     await _firestore.runTransaction((transaction) async {
       final planDoc = await transaction.get(_plansRef.doc(planId));
@@ -200,26 +200,59 @@ class PlanRepository {
       final planData = planDoc.data()!;
       final participantes = List<String>.from(planData['participantesIds'] ?? []);
       final listaEspera = List<String>.from(planData['listaEsperaIds'] ?? []);
+      final solicitudes = List<String>.from(planData['solicitudesIds'] ?? []);
       final capacidadActual = planData['capacidadActual'] as int? ?? 0;
       final capacidadMaxima = planData['capacidadMaxima'] as int? ?? 0;
+      final requiereAprobacion = planData['requiereAprobacion'] as bool? ?? false;
 
       if (participantes.contains(userId)) {
         throw PlanRepositoryException('Ya estas en este plan');
       }
-
       if (listaEspera.contains(userId)) {
         throw PlanRepositoryException('Ya estas en la lista de espera');
       }
+      if (solicitudes.contains(userId)) {
+        throw PlanRepositoryException('Tu solicitud ya fue enviada. Espera la aprobación del coordinador.');
+      }
+
+      // Si requiere aprobación → enviar solicitud
+      if (requiereAprobacion) {
+        transaction.update(_plansRef.doc(planId), {
+          'solicitudesIds': FieldValue.arrayUnion([userId]),
+        });
+
+        // Notificar al organizador
+        final organizadorId = planData['organizadorId'] as String? ?? '';
+        final planTitulo = planData['titulo'] as String? ?? 'el plan';
+        if (organizadorId.isNotEmpty) {
+          final notifRef = _firestore
+              .collection('users')
+              .doc(organizadorId)
+              .collection('notifications')
+              .doc();
+          transaction.set(notifRef, {
+            'id': notifRef.id,
+            'userId': organizadorId,
+            'tipo': 'planCambiado',
+            'titulo': 'Nueva solicitud de asistencia',
+            'cuerpo': 'Alguien quiere unirse a "$planTitulo". Revisa las solicitudes.',
+            'planId': planId,
+            'planTitulo': planTitulo,
+            'fechaCreacion': DateTime.now().toIso8601String(),
+            'leida': false,
+          });
+        }
+        throw PlanRepositoryException('SOLICITUD_ENVIADA');
+      }
 
       if (capacidadActual >= capacidadMaxima) {
-        // Agregar a lista de espera
         transaction.update(_plansRef.doc(planId), {
           'listaEsperaIds': FieldValue.arrayUnion([userId]),
         });
         throw PlanRepositoryException('Plan lleno. Te agregamos a la lista de espera.');
       }
 
-      // Agregar como participante
+      // Agregar como participante directamente
       transaction.update(_plansRef.doc(planId), {
         'participantesIds': FieldValue.arrayUnion([userId]),
         'capacidadActual': FieldValue.increment(1),
@@ -303,6 +336,81 @@ class PlanRepository {
           'leida': false,
         });
       }
+    });
+  }
+
+  /// Stream de solicitudes pendientes de un plan
+  Stream<List<String>> watchSolicitudes(String planId) {
+    return _plansRef.doc(planId).snapshots().map((doc) {
+      if (!doc.exists) return [];
+      return List<String>.from(doc.data()?['solicitudesIds'] ?? []);
+    });
+  }
+
+  /// Aprobar solicitud de un usuario → pasa a participantesIds
+  Future<void> approveSolicitud(
+      String planId, String userId, String userName) async {
+    await _firestore.runTransaction((transaction) async {
+      final planDoc = await transaction.get(_plansRef.doc(planId));
+      if (!planDoc.exists) return;
+
+      final planData = planDoc.data()!;
+      final capacidadActual = planData['capacidadActual'] as int? ?? 0;
+      final capacidadMaxima = planData['capacidadMaxima'] as int? ?? 0;
+      final planTitulo = planData['titulo'] as String? ?? 'el plan';
+
+      if (capacidadActual >= capacidadMaxima) {
+        throw PlanRepositoryException('El plan ya está lleno. No se puede aprobar más participantes.');
+      }
+
+      // Mover de solicitudes a participantes
+      transaction.update(_plansRef.doc(planId), {
+        'solicitudesIds': FieldValue.arrayRemove([userId]),
+        'participantesIds': FieldValue.arrayUnion([userId]),
+        'capacidadActual': FieldValue.increment(1),
+      });
+
+      // Notificar al usuario aprobado
+      final notifRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc();
+      transaction.set(notifRef, {
+        'id': notifRef.id,
+        'userId': userId,
+        'tipo': 'asistenciaConfirmada',
+        'titulo': '¡Solicitud aprobada!',
+        'cuerpo': 'El coordinador aprobó tu solicitud para "$planTitulo". ¡Nos vemos ahí!',
+        'planId': planId,
+        'planTitulo': planTitulo,
+        'fechaCreacion': DateTime.now().toIso8601String(),
+        'leida': false,
+      });
+    });
+  }
+
+  /// Rechazar solicitud de un usuario
+  Future<void> rejectSolicitud(
+      String planId, String userId, String planTitulo) async {
+    await _plansRef.doc(planId).update({
+      'solicitudesIds': FieldValue.arrayRemove([userId]),
+    });
+
+    // Notificar al usuario rechazado
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .add({
+      'userId': userId,
+      'tipo': 'planCancelado',
+      'titulo': 'Solicitud no aprobada',
+      'cuerpo': 'El coordinador no aprobó tu solicitud para "$planTitulo".',
+      'planId': planId,
+      'planTitulo': planTitulo,
+      'fechaCreacion': DateTime.now().toIso8601String(),
+      'leida': false,
     });
   }
 
