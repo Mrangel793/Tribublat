@@ -31,6 +31,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   # Profile setup dependencies
   http: ^1.2.0
+  share_plus: ^10.1.4
   # google_places_flutter: ^2.1.1  # Reemplazado por api-colombia.com
   image_picker: ^1.1.2
   image_cropper: ^8.0.2

@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/src/features/reviews/data/review_repository.dart';
 import 'package:myapp/src/features/reviews/domain/review_model.dart';
 import 'package:myapp/src/features/reviews/presentation/review_form_sheet.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Pantalla de detalle de un plan
 class PlanDetailScreen extends ConsumerStatefulWidget {
@@ -179,9 +180,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       ),
       actions: [
         GestureDetector(
-          onTap: () {
-            // TODO: Compartir plan
-          },
+          onTap: () => _sharePlan(plan),
           child: Container(
             margin: const EdgeInsets.all(8),
             width: 40,
@@ -1433,6 +1432,26 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         planTitulo: plan.titulo,
       ),
     );
+  }
+
+  void _sharePlan(PlanModel plan) {
+    final fecha = DateFormat('EEEE dd/MM/yyyy – HH:mm', 'es').format(plan.fechaHora);
+    final cupos = plan.tieneDisponibilidad
+        ? '${plan.plazasDisponibles} cupos disponibles'
+        : 'Sin cupos disponibles';
+
+    final texto = '''🎉 *${plan.titulo}*
+
+📅 $fecha
+📍 ${plan.ubicacionNombre.isNotEmpty ? plan.ubicacionNombre : plan.ciudad}
+👥 $cupos
+${plan.tipoPrecio == PlanPriceType.gratis ? '✅ Gratis' : '💰 ${plan.precioFormateado}'}
+
+${plan.descripcion}
+
+¡Únete en TribuLat! 🚀''';
+
+    Share.share(texto, subject: plan.titulo);
   }
 
   // ═══════════════════════════════════════════════════════════════
