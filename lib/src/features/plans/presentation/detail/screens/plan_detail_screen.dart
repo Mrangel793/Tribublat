@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/src/common/theme/dark_feed_colors.dart';
-import 'package:myapp/src/features/plans/data/plan_repository.dart';
+import 'package:myapp/src/features/plans/data/plan_repository.dart'
+    show PlanRepository, PlanRepositoryException, planRepositoryProvider,
+        planStreamProvider, JoinPlanResult;
 import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1585,37 +1587,40 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           );
         }
       } else {
-        try {
-          await repository.joinPlan(plan.id, userId);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+        final result = await repository.joinPlan(plan.id, userId);
+        if (mounted) {
+          switch (result) {
+            case JoinPlanResult.joined:
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('¡Te has unido al plan!',
                     style: GoogleFonts.inter(color: Colors.white)),
                 backgroundColor: DarkFeedColors.greenEmerald,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
-              ),
-            );
-          }
-        } catch (e) {
-          if (e.toString() == 'SOLICITUD_ENVIADA') {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      '¡Solicitud enviada! El coordinador la revisará pronto.',
-                      style: GoogleFonts.inter(color: Colors.white)),
-                  backgroundColor: DarkFeedColors.gradientViolet,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              );
-            }
-          } else {
-            rethrow;
+              ));
+              break;
+            case JoinPlanResult.solicitudEnviada:
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    '¡Solicitud enviada! El coordinador la revisará pronto.',
+                    style: GoogleFonts.inter(color: Colors.white)),
+                backgroundColor: DarkFeedColors.gradientViolet,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ));
+              break;
+            case JoinPlanResult.listaEspera:
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('Plan lleno. Te agregamos a la lista de espera.',
+                    style: GoogleFonts.inter(color: Colors.white)),
+                backgroundColor: const Color(0xFFFFB347),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ));
+              break;
           }
         }
       }

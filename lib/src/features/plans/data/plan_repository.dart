@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myapp/src/features/notifications/services/onesignal_service.dart';
 import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:myapp/src/features/user/domain/user_model.dart';
+
+enum JoinPlanResult { joined, solicitudEnviada, listaEspera }
 
 /// Excepción para errores del repositorio de planes
 class PlanRepositoryException implements Exception {
@@ -188,8 +191,14 @@ class PlanRepository {
 
   // ============ OPERACIONES DE ESCRITURA ============
 
-  /// Unirse a un plan (o enviar solicitud si requiere aprobación)
-  Future<void> joinPlan(String planId, String userId) async {
+  /// Unirse a un plan. Retorna el resultado de la operación.
+  Future<JoinPlanResult> joinPlan(String planId, String userId) async {
+    // Usamos una variable fuera de la transacción para capturar el resultado
+    // SIN lanzar excepciones dentro (eso revertería la transacción)
+    JoinPlanResult result = JoinPlanResult.joined;
+    String _organizadorId = '';
+    String _planTitulo = '';
+
     await _firestore.runTransaction((transaction) async {
       final planDoc = await transaction.get(_plansRef.doc(planId));
 
@@ -198,32 +207,39 @@ class PlanRepository {
       }
 
       final planData = planDoc.data()!;
-      final participantes = List<String>.from(planData['participantesIds'] ?? []);
-      final listaEspera = List<String>.from(planData['listaEsperaIds'] ?? []);
-      final solicitudes = List<String>.from(planData['solicitudesIds'] ?? []);
+      final participantes =
+          List<String>.from(planData['participantesIds'] ?? []);
+      final listaEspera =
+          List<String>.from(planData['listaEsperaIds'] ?? []);
+      final solicitudes =
+          List<String>.from(planData['solicitudesIds'] ?? []);
       final capacidadActual = planData['capacidadActual'] as int? ?? 0;
       final capacidadMaxima = planData['capacidadMaxima'] as int? ?? 0;
-      final requiereAprobacion = planData['requiereAprobacion'] as bool? ?? false;
+      final requiereAprobacion =
+          planData['requiereAprobacion'] as bool? ?? false;
+      final planTitulo = planData['titulo'] as String? ?? 'el plan';
+      final organizadorId = planData['organizadorId'] as String? ?? '';
+
+      _planTitulo = planTitulo;
+      _organizadorId = organizadorId;
 
       if (participantes.contains(userId)) {
-        throw PlanRepositoryException('Ya estas en este plan');
+        throw PlanRepositoryException('Ya estás en este plan');
       }
       if (listaEspera.contains(userId)) {
-        throw PlanRepositoryException('Ya estas en la lista de espera');
+        throw PlanRepositoryException('Ya estás en la lista de espera');
       }
       if (solicitudes.contains(userId)) {
-        throw PlanRepositoryException('Tu solicitud ya fue enviada. Espera la aprobación del coordinador.');
+        throw PlanRepositoryException(
+            'Tu solicitud ya fue enviada. Espera la aprobación del coordinador.');
       }
 
-      // Si requiere aprobación → enviar solicitud
       if (requiereAprobacion) {
+        // Agregar a solicitudes pendientes
         transaction.update(_plansRef.doc(planId), {
           'solicitudesIds': FieldValue.arrayUnion([userId]),
         });
-
-        // Notificar al organizador
-        final organizadorId = planData['organizadorId'] as String? ?? '';
-        final planTitulo = planData['titulo'] as String? ?? 'el plan';
+        // Crear notificación para el organizador en Firestore
         if (organizadorId.isNotEmpty) {
           final notifRef = _firestore
               .collection('users')
@@ -235,31 +251,33 @@ class PlanRepository {
             'userId': organizadorId,
             'tipo': 'planCambiado',
             'titulo': 'Nueva solicitud de asistencia',
-            'cuerpo': 'Alguien quiere unirse a "$planTitulo". Revisa las solicitudes.',
+            'cuerpo':
+                'Alguien quiere unirse a "$planTitulo". Revisa las solicitudes.',
             'planId': planId,
             'planTitulo': planTitulo,
             'fechaCreacion': DateTime.now().toIso8601String(),
             'leida': false,
           });
         }
-        throw PlanRepositoryException('SOLICITUD_ENVIADA');
+        result = JoinPlanResult.solicitudEnviada;
+        return; // Salir sin throw → transacción se CONFIRMA ✅
       }
 
       if (capacidadActual >= capacidadMaxima) {
         transaction.update(_plansRef.doc(planId), {
           'listaEsperaIds': FieldValue.arrayUnion([userId]),
         });
-        throw PlanRepositoryException('Plan lleno. Te agregamos a la lista de espera.');
+        result = JoinPlanResult.listaEspera;
+        return; // Transacción se confirma ✅
       }
 
-      // Agregar como participante directamente
+      // Unirse directamente
       transaction.update(_plansRef.doc(planId), {
         'participantesIds': FieldValue.arrayUnion([userId]),
         'capacidadActual': FieldValue.increment(1),
       });
 
-      // Guardar notificación de confirmación para el usuario
-      final planTitulo = planData['titulo'] as String? ?? 'el plan';
+      // Notificación de confirmación para el usuario
       final notifRef = _firestore
           .collection('users')
           .doc(userId)
@@ -276,7 +294,35 @@ class PlanRepository {
         'fechaCreacion': DateTime.now().toIso8601String(),
         'leida': false,
       });
+      result = JoinPlanResult.joined;
     });
+
+    // DESPUÉS de confirmar la transacción → enviar push por OneSignal
+    switch (result) {
+      case JoinPlanResult.solicitudEnviada:
+        if (_organizadorId.isNotEmpty) {
+          await OneSignalService.sendPushToUser(
+            targetUserId: _organizadorId,
+            titulo: 'Nueva solicitud de asistencia',
+            cuerpo:
+                'Alguien quiere unirse a "$_planTitulo". Revisa las solicitudes.',
+            planId: planId,
+          );
+        }
+        break;
+      case JoinPlanResult.joined:
+        await OneSignalService.sendPushToUser(
+          targetUserId: userId,
+          titulo: '¡Asistencia confirmada!',
+          cuerpo: 'Te uniste a "$_planTitulo". ¡Nos vemos ahí!',
+          planId: planId,
+        );
+        break;
+      case JoinPlanResult.listaEspera:
+        break;
+    }
+
+    return result;
   }
 
   /// Salir de un plan
