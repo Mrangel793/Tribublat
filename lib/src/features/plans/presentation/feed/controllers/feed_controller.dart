@@ -112,73 +112,73 @@ class FeedController extends StateNotifier<FeedState> {
     }
   }
 
-  /// Cargar planes según tab y filtro actual
+  /// Suscribirse al stream de planes según tab y filtro.
+  /// Se actualiza automáticamente cuando Firestore cambia.
   Future<void> loadPlans() async {
+    // Cancelar suscripción anterior
+    await _plansSubscription?.cancel();
+    _plansSubscription = null;
+
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    try {
-      List<PlanModel> plans;
-      Map<String, int> scores = {};
+    final user = state.currentUser;
+    final ciudad = user?.ciudad;
 
-      final user = state.currentUser;
-      final ciudad = user?.ciudad;
+    Stream<List<PlanModel>> stream;
 
-      switch (state.currentTab) {
-        case FeedTab.paraTi:
-          // "Para ti" muestra todos los planes sin filtrar por ciudad
-          if (user != null) {
-            plans = await _planRepository.getPersonalizedPlans(
-              userInterests: user.intereses,
-              userEnergyLevel: user.nivelEnergia,
-              ciudad: null, // No filtrar por ciudad para mostrar todos
-            );
-            // Calcular scores para mostrar
-            for (final plan in plans) {
-              final score = _planRepository.calculateMatchScore(
-                plan,
-                user.intereses,
-                user.nivelEnergia,
-              );
-              scores[plan.id] = score.toInt();
-            }
-          } else {
-            plans = await _planRepository.watchActivePlans().first;
-          }
-          break;
-
-        case FeedTab.cerca:
-          // "Cerca" filtra por la ciudad del usuario
-          plans = await _planRepository.watchActivePlans(ciudad: ciudad).first;
-          break;
-
-        case FeedTab.instantaneos:
-          // "Instantáneos" muestra todos los planes que inician pronto
-          plans = await _planRepository.watchInstantPlans().first;
-          break;
-
-        case FeedTab.misPlanes:
-          if (_currentUserId != null) {
-            plans = await _planRepository.watchUserPlans(_currentUserId).first;
-          } else {
-            plans = [];
-          }
-          break;
-      }
-
-      // Aplicar filtro
-      plans = _applyFilter(plans);
-
-      state = state.copyWith(
-        plans: plans,
-        matchScores: scores,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Error al cargar planes: ${e.toString()}',
-      );
+    switch (state.currentTab) {
+      case FeedTab.paraTi:
+        stream = _planRepository.watchActivePlans();
+        break;
+      case FeedTab.cerca:
+        stream = _planRepository.watchActivePlans(ciudad: ciudad);
+        break;
+      case FeedTab.instantaneos:
+        stream = _planRepository.watchInstantPlans();
+        break;
+      case FeedTab.misPlanes:
+        if (_currentUserId != null) {
+          stream = _planRepository.watchUserPlans(_currentUserId);
+        } else {
+          state = state.copyWith(plans: [], isLoading: false);
+          return;
+        }
     }
+
+    // Escuchar el stream continuamente
+    _plansSubscription = stream.listen(
+      (rawPlans) {
+        Map<String, int> scores = {};
+
+        // Calcular scores de afinidad para "Para ti"
+        if (state.currentTab == FeedTab.paraTi && user != null) {
+          for (final plan in rawPlans) {
+            scores[plan.id] = _planRepository
+                .calculateMatchScore(plan, user.intereses, user.nivelEnergia)
+                .toInt();
+          }
+        }
+
+        final filtered = _applyFilter(rawPlans);
+
+        if (mounted) {
+          state = state.copyWith(
+            plans: filtered,
+            matchScores: scores,
+            isLoading: false,
+            isRefreshing: false,
+          );
+        }
+      },
+      onError: (e) {
+        if (mounted) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: 'Error al cargar planes: ${e.toString()}',
+          );
+        }
+      },
+    );
   }
 
   /// Aplicar filtro actual a la lista de planes
