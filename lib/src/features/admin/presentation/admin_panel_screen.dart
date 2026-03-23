@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:myapp/src/features/reports/data/report_repository.dart';
+import 'package:myapp/src/features/business/data/business_request_repository.dart';
 
 /// Pantalla principal del panel de administracion
 class AdminPanelScreen extends ConsumerWidget {
@@ -85,6 +86,25 @@ class AdminPanelScreen extends ConsumerWidget {
               subtitle: 'Cambiar roles, ver usuarios, etc.',
               color: const Color(0xFF9B59B6),
               onTap: () => context.push('/admin/users'),
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final countAsync =
+                    ref.watch(pendingBusinessCountProvider);
+                final count = countAsync.valueOrNull ?? 0;
+                return _buildAdminOption(
+                  context,
+                  icon: Icons.store_outlined,
+                  title: 'Solicitudes de negocio',
+                  subtitle: count > 0
+                      ? '$count solicitudes pendientes'
+                      : 'Aprobar cuentas de negocio',
+                  color: const Color(0xFF9B59B6),
+                  badge: count > 0 ? count.toString() : null,
+                  onTap: () =>
+                      context.push('/admin/business-requests'),
+                );
+              },
             ),
             _buildAdminOption(
               context,

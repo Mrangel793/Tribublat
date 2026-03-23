@@ -775,6 +775,19 @@ class ProfileScreen extends ConsumerWidget {
       icon: Icons.settings_outlined,
       child: Column(
         children: [
+          // Solicitar cuenta de negocio (solo para usuarios estándar)
+          if (user?.rol == UserRole.usuario) ...[
+            _buildOptionTile(
+              icon: Icons.store_outlined,
+              title: 'Registrar mi negocio',
+              subtitle: 'Solicita una cuenta de negocio',
+              color: DarkFeedColors.gradientViolet,
+              onTap: () => context.push('/request-business'),
+            ),
+            Container(
+                height: 1,
+                color: DarkFeedColors.borderSubtle.withValues(alpha: 0.5)),
+          ],
           if (user?.canViewAdvancedMetrics == true) ...[
             _buildOptionTile(
               icon: Icons.analytics_outlined,
@@ -783,7 +796,7 @@ class ProfileScreen extends ConsumerWidget {
               onTap: () => context.push('/business/metrics'),
             ),
             Container(
-                height: 1, color: DarkFeedColors.borderSubtle.withOpacity(0.5)),
+                height: 1, color: DarkFeedColors.borderSubtle.withValues(alpha: 0.5)),
           ],
           if (user?.canAccessAdminPanel == true) ...[
             _buildOptionTile(
@@ -832,6 +845,7 @@ class ProfileScreen extends ConsumerWidget {
     required String title,
     required VoidCallback onTap,
     Color? color,
+    String? subtitle,
   }) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -845,8 +859,13 @@ class ProfileScreen extends ConsumerWidget {
           color: color ?? DarkFeedColors.textPrimary,
         ),
       ),
+      subtitle: subtitle != null
+          ? Text(subtitle,
+              style: GoogleFonts.inter(
+                  fontSize: 12, color: DarkFeedColors.textSecondary))
+          : null,
       trailing: Icon(Icons.chevron_right,
-          color: DarkFeedColors.textSecondary.withOpacity(0.5), size: 20),
+          color: DarkFeedColors.textSecondary.withValues(alpha: 0.5), size: 20),
       onTap: onTap,
     );
   }

@@ -110,6 +110,21 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── Solicitudes de cuenta de negocio ─────────────────────────
+    match /business_requests/{requestId} {
+      // Admin puede leer todas
+      allow read: if isAdmin();
+      // El dueño puede leer la suya
+      allow read: if isSignedIn() &&
+          resource.data.userId == request.auth.uid;
+      // Cualquier usuario autenticado puede crear (la validación de duplicados está en el repo)
+      allow create: if isSignedIn() &&
+          request.resource.data.userId == request.auth.uid;
+      // Solo admin puede actualizar (aprobar/rechazar)
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // ── Regla por defecto ─────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

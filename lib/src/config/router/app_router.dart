@@ -17,6 +17,8 @@ import 'package:myapp/src/features/business/presentation/metrics/business_metric
 import 'package:myapp/src/features/admin/presentation/admin_panel_screen.dart';
 import 'package:myapp/src/features/admin/presentation/user_management_screen.dart';
 import 'package:myapp/src/features/admin/presentation/reports_screen.dart';
+import 'package:myapp/src/features/admin/presentation/business_requests_screen.dart';
+import 'package:myapp/src/features/business/presentation/request_business_screen.dart';
 import 'package:myapp/src/features/spaces/presentation/spaces_directory_screen.dart';
 import 'package:myapp/src/features/spaces/presentation/space_detail_screen.dart';
 import 'package:myapp/src/features/spaces/presentation/register_space_screen.dart';
@@ -125,6 +127,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/reports',
       builder: (context, state) => const ReportsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/business-requests',
+      builder: (context, state) => const BusinessRequestsScreen(),
+    ),
+    GoRoute(
+      path: '/request-business',
+      builder: (context, state) => const RequestBusinessScreen(),
     ),
     // === DIRECTORIO DE ESPACIOS ===
     GoRoute(
