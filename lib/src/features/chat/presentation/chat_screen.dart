@@ -23,6 +23,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
+  PlanModel? _plan; // Guardamos el plan para acceder a participantes
 
   @override
   void dispose() {
@@ -59,6 +60,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildChat(PlanModel plan) {
+    _plan = plan; // Guardamos referencia al plan
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       return _buildAccessDenied('Debes iniciar sesión');
@@ -624,7 +626,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         texto: text,
         fechaCreacion: DateTime.now(),
       );
-      await ref.read(chatRepositoryProvider).sendMessage(message);
+      // Todos los participantes (incluyendo organizador)
+      final allParticipants = <String>[
+        ...(_plan?.participantesIds ?? []),
+        if (_plan?.organizadorId != null) _plan!.organizadorId,
+      ];
+
+      await ref.read(chatRepositoryProvider).sendMessage(
+            message,
+            participantIds: allParticipants,
+            planTitle: _plan?.titulo ?? 'el plan',
+          );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -33,10 +33,42 @@ class ChatRepository {
             .toList());
   }
 
-  /// Envía un mensaje al chat
-  Future<void> sendMessage(ChatMessageModel message) async {
+  /// Envía un mensaje al chat y notifica a los demás participantes
+  Future<void> sendMessage(
+    ChatMessageModel message, {
+    required List<String> participantIds,
+    required String planTitle,
+  }) async {
     final docRef = _messagesRef(message.planId).doc();
-    await docRef.set({...message.toJson(), 'id': docRef.id});
+    final batch = _firestore.batch();
+
+    // Guardar el mensaje
+    batch.set(docRef, {...message.toJson(), 'id': docRef.id});
+
+    // Crear notificación para cada participante (excepto el remitente)
+    final otrosParticipantes =
+        participantIds.where((id) => id != message.userId).toList();
+
+    for (final userId in otrosParticipantes) {
+      final notifRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc();
+      batch.set(notifRef, {
+        'id': notifRef.id,
+        'userId': userId,
+        'tipo': 'planCambiado',
+        'titulo': 'Nuevo mensaje en "$planTitle"',
+        'cuerpo': '${message.userName}: ${message.texto}',
+        'planId': message.planId,
+        'planTitulo': planTitle,
+        'fechaCreacion': DateTime.now().toIso8601String(),
+        'leida': false,
+      });
+    }
+
+    await batch.commit();
   }
 
   /// Fija o desfija un mensaje (solo coordinador)
