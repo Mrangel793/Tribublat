@@ -3,24 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:myapp/src/features/notifications/services/onesignal_config.dart';
 
-/// Servicio de notificaciones push usando OneSignal
-///
-/// CONFIGURACIÓN REQUERIDA:
-/// 1. Ve a https://onesignal.com → crea una cuenta gratis
-/// 2. New App → nombre: TribuLat → plataforma: Android (Google Android)
-/// 3. En "Configure Your Platform" → pega la Server Key de Firebase
-///    (Firebase Console → Proyecto → Configuración → Cloud Messaging → Server key)
-/// 4. Copia el App ID de OneSignal y reemplaza [ONESIGNAL_APP_ID] abajo
-/// 5. Copia el REST API Key y reemplaza [ONESIGNAL_REST_API_KEY] abajo
 class OneSignalService {
-  // ⚠️ REEMPLAZAR con tus valores reales de OneSignal
-  static const String _appId = 'REEMPLAZAR_CON_ONESIGNAL_APP_ID';
-  static const String _restApiKey = 'REEMPLAZAR_CON_ONESIGNAL_REST_API_KEY';
+  static const String _appId = OneSignalConfig.appId;
+  static const String _restApiKey = OneSignalConfig.restApiKey;
 
   static bool get isConfigured =>
-      _appId != 'REEMPLAZAR_CON_ONESIGNAL_APP_ID' &&
-      _restApiKey != 'REEMPLAZAR_CON_ONESIGNAL_REST_API_KEY';
+      _appId != 'TU_ONESIGNAL_APP_ID' && _restApiKey != 'TU_ONESIGNAL_REST_API_KEY';
 
   /// Inicializa OneSignal y asocia el usuario con su Firebase UID
   Future<void> initialize(String userId) async {

@@ -4,6 +4,9 @@ apk_base64.txt
 *.ipa
 *.aab
 
+# Credenciales privadas — NO subir a GitHub
+lib/src/features/notifications/services/onesignal_config.dart
+
 # Miscellaneous
 *.class
 *.log
