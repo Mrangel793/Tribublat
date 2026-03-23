@@ -17,8 +17,8 @@ import 'dart:convert';
 /// 4. Reemplaza los valores abajo
 class CloudinaryService {
   // ⚠️ REEMPLAZAR con tus valores de Cloudinary
-  static const String _cloudName = 'REEMPLAZAR_CON_TU_CLOUD_NAME';
-  static const String _uploadPreset = 'REEMPLAZAR_CON_TU_UPLOAD_PRESET';
+  static const String _cloudName = 'dei2nx8gl';
+  static const String _uploadPreset = 'tribulat';
 
   static const String _uploadUrl =
       'https://api.cloudinary.com/v1_1/$_cloudName/image/upload';
