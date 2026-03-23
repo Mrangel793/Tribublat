@@ -20,17 +20,26 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     NotificationService.scaffoldMessengerKey = _scaffoldMessengerKey;
+
+    // Inicializar servicios si el usuario ya está autenticado al arrancar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(authStateChangesProvider).valueOrNull;
+      if (user != null) {
+        ref.read(notificationServiceProvider).initialize(user.uid);
+        ref.read(oneSignalServiceProvider).initialize(user.uid);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Inicializar NotificationService cuando el usuario se autentica
-    ref.listen(authStateChangesProvider, (_, next) {
+    // Inicializar cuando cambia el estado de auth (login/logout)
+    ref.listen(authStateChangesProvider, (previous, next) {
       final user = next.valueOrNull;
-      if (user != null) {
-        // Inicializar Firebase Messaging
+      final prevUser = previous?.valueOrNull;
+      // Solo inicializar cuando hay un cambio real de usuario
+      if (user != null && user.uid != prevUser?.uid) {
         ref.read(notificationServiceProvider).initialize(user.uid);
-        // Inicializar OneSignal
         ref.read(oneSignalServiceProvider).initialize(user.uid);
       }
     });
