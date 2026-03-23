@@ -22,15 +22,17 @@ class SpaceRepository {
     await _spacesRef.doc(spaceId).update(fields);
   }
 
-  /// Stream del directorio público (solo aprobados), premium primero
+  /// Stream del directorio público (solo aprobados), premium primero.
+  /// Usa un solo orderBy para no requerir índice compuesto en Firestore.
+  /// El ordenamiento premium-first se hace en el cliente.
   Stream<List<BusinessSpaceModel>> watchDirectory({
     String? ciudad,
     SpaceCategory? categoria,
   }) {
     Query<Map<String, dynamic>> query = _spacesRef
         .where('estado', isEqualTo: SpaceStatus.aprobado.name)
-        .orderBy('esPremium', descending: true)
-        .orderBy('fechaRegistro', descending: false);
+        .orderBy('fechaRegistro', descending: false)
+        .limit(50);
 
     if (ciudad != null && ciudad.isNotEmpty) {
       query = query.where('ciudad', isEqualTo: ciudad);
@@ -39,10 +41,19 @@ class SpaceRepository {
       query = query.where('categoria', isEqualTo: categoria.name);
     }
 
-    return query.snapshots().map((snap) => snap.docs
-        .map((doc) =>
-            BusinessSpaceModel.fromJson({...doc.data(), 'id': doc.id}))
-        .toList());
+    return query.snapshots().map((snap) {
+      final spaces = snap.docs
+          .map((doc) =>
+              BusinessSpaceModel.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+      // Ordenar: premium primero, luego por fecha de registro
+      spaces.sort((a, b) {
+        if (a.esPremium && !b.esPremium) return -1;
+        if (!a.esPremium && b.esPremium) return 1;
+        return a.fechaRegistro.compareTo(b.fechaRegistro);
+      });
+      return spaces;
+    });
   }
 
   /// Stream de los espacios del negocio actual

@@ -22,6 +22,16 @@ class _SpacesDirectoryScreenState
   SpaceCategory? _selectedCategory;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _loadingTimedOut = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Si tarda más de 6 segundos → mostrar estado vacío
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted) setState(() => _loadingTimedOut = true);
+    });
+  }
 
   @override
   void dispose() {
@@ -44,12 +54,13 @@ class _SpacesDirectoryScreenState
             _buildCategoryFilter(),
             Expanded(
               child: spacesAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(
-                      color: DarkFeedColors.gradientOrange),
-                ),
-                error: (e, _) =>
-                    Center(child: Text('Error: $e')),
+                loading: () => _loadingTimedOut
+                    ? _buildEmpty()
+                    : const Center(
+                        child: CircularProgressIndicator(
+                            color: DarkFeedColors.gradientOrange),
+                      ),
+                error: (_, __) => _buildEmpty(),
                 data: (spaces) {
                   final filtered = _searchQuery.isEmpty
                       ? spaces
