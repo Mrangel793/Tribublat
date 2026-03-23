@@ -2,6 +2,28 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
+/// Caché global en memoria para evitar decodificar la misma imagen repetidamente.
+/// Se limpia automáticamente cuando supera 50 entradas para no agotar RAM.
+final _imageCache = <String, Uint8List>{};
+
+Uint8List? _getCachedBytes(String base64String) {
+  // Usar los primeros 64 chars como key (suficiente para identificar la imagen)
+  final key = base64String.length > 64
+      ? base64String.substring(0, 64)
+      : base64String;
+
+  if (_imageCache.containsKey(key)) return _imageCache[key];
+
+  try {
+    final bytes = base64Decode(base64String);
+    if (_imageCache.length >= 50) _imageCache.clear(); // Limpiar si crece mucho
+    _imageCache[key] = bytes;
+    return bytes;
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Widget para mostrar imágenes guardadas como Base64 en Firestore
 class Base64ImageWidget extends StatelessWidget {
   final String base64String;
@@ -23,41 +45,33 @@ class Base64ImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    try {
-      // Decodificar Base64 a bytes
-      final Uint8List bytes = base64Decode(base64String);
+    final bytes = _getCachedBytes(base64String);
 
-      return Image.memory(
-        bytes,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) {
-          return errorWidget ??
-              Container(
-                width: width,
-                height: height,
-                color: Colors.grey[300],
-                child: const Icon(
-                  Icons.broken_image,
-                  color: Colors.grey,
-                ),
-              );
-        },
-      );
-    } catch (e) {
-      // Si falla la decodificación, mostrar error
+    if (bytes == null) {
       return errorWidget ??
           Container(
             width: width,
             height: height,
             color: Colors.grey[300],
-            child: const Icon(
-              Icons.error_outline,
-              color: Colors.red,
-            ),
+            child: const Icon(Icons.error_outline, color: Colors.grey),
           );
     }
+
+    return Image.memory(
+      bytes,
+      width: width,
+      height: height,
+      fit: fit,
+      gaplessPlayback: true, // Evita parpadeo al reconstruir
+      errorBuilder: (_, __, ___) =>
+          errorWidget ??
+          Container(
+            width: width,
+            height: height,
+            color: Colors.grey[300],
+            child: const Icon(Icons.broken_image, color: Colors.grey),
+          ),
+    );
   }
 }
 

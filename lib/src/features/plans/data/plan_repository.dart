@@ -31,7 +31,7 @@ class PlanRepository {
   /// Stream de planes activos para el feed
   Stream<List<PlanModel>> watchActivePlans({
     String? ciudad,
-    int limit = 20,
+    int limit = 10, // Reducido de 20 → primera carga más rápida
   }) {
     Query<Map<String, dynamic>> query = _plansRef
         .where('estado', isEqualTo: PlanStatus.activo.name)
@@ -100,6 +100,7 @@ class PlanRepository {
     return _plansRef
         .where('participantesIds', arrayContains: userId)
         .orderBy('fechaHora')
+        .limit(30) // Límite para evitar cargar cientos de planes
         .snapshots()
         .map((snapshot) {
       return snapshot.docs

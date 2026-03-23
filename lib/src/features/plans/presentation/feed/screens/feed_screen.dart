@@ -173,12 +173,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
               // ── Plans List ──
               if (state.isLoading && state.plans.isEmpty)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        DarkFeedColors.gradientOrange,
-                      ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, __) => _buildSkeletonCard(),
+                      childCount: 4,
                     ),
                   ),
                 )
@@ -226,6 +226,83 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: _ShimmerBox(
+        child: Container(
+          decoration: BoxDecoration(
+            color: DarkFeedColors.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Imagen placeholder
+              Container(
+                height: 160,
+                decoration: BoxDecoration(
+                  color: DarkFeedColors.surface,
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16)),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Título
+                    Container(
+                      height: 18,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: DarkFeedColors.surface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Subtítulo
+                    Container(
+                      height: 14,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: DarkFeedColors.surface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Container(
+                          height: 14,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: DarkFeedColors.surface,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          height: 14,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: DarkFeedColors.surface,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -313,6 +390,48 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Animación shimmer para skeleton loading — sin dependencias externas
+class _ShimmerBox extends StatefulWidget {
+  final Widget child;
+  const _ShimmerBox({required this.child});
+
+  @override
+  State<_ShimmerBox> createState() => _ShimmerBoxState();
+}
+
+class _ShimmerBoxState extends State<_ShimmerBox>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.4, end: 0.9).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (_, child) => Opacity(opacity: _animation.value, child: child),
+      child: widget.child,
     );
   }
 }
