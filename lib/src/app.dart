@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myapp/src/config/router/app_router.dart';
 import 'package:myapp/src/features/auth/provider/auth_provider.dart';
 import 'package:myapp/src/features/notifications/services/notification_service.dart';
+import 'package:myapp/src/features/notifications/services/onesignal_service.dart';
 
 final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -27,7 +28,10 @@ class _MyAppState extends ConsumerState<MyApp> {
     ref.listen(authStateChangesProvider, (_, next) {
       final user = next.valueOrNull;
       if (user != null) {
+        // Inicializar Firebase Messaging
         ref.read(notificationServiceProvider).initialize(user.uid);
+        // Inicializar OneSignal
+        ref.read(oneSignalServiceProvider).initialize(user.uid);
       }
     });
 

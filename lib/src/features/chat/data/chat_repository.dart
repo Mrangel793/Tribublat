@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myapp/src/features/chat/domain/chat_message_model.dart';
+import 'package:myapp/src/features/notifications/services/onesignal_service.dart';
 
 class ChatRepository {
   final FirebaseFirestore _firestore;
@@ -69,6 +70,16 @@ class ChatRepository {
     }
 
     await batch.commit();
+
+    // Enviar push real por OneSignal
+    if (otrosParticipantes.isNotEmpty) {
+      await OneSignalService.sendPushToUsers(
+        targetUserIds: otrosParticipantes,
+        titulo: planTitle,
+        cuerpo: '${message.userName}: ${message.texto}',
+        planId: message.planId,
+      );
+    }
   }
 
   /// Fija o desfija un mensaje (solo coordinador)

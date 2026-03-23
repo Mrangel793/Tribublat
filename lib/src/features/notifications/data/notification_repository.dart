@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myapp/src/features/notifications/domain/notification_model.dart';
+import 'package:myapp/src/features/notifications/services/onesignal_service.dart';
 
 class NotificationRepository {
   final FirebaseFirestore _firestore;
@@ -10,10 +11,18 @@ class NotificationRepository {
   CollectionReference<Map<String, dynamic>> _notificationsRef(String userId) =>
       _firestore.collection('users').doc(userId).collection('notifications');
 
-  /// Crea una notificación en Firestore para un usuario
+  /// Crea una notificación en Firestore Y envía push por OneSignal
   Future<void> createNotification(NotificationModel notification) async {
     final docRef = _notificationsRef(notification.userId).doc();
     await docRef.set({...notification.toJson(), 'id': docRef.id});
+
+    // Enviar push real por OneSignal (solo si está configurado)
+    await OneSignalService.sendPushToUser(
+      targetUserId: notification.userId,
+      titulo: notification.titulo,
+      cuerpo: notification.cuerpo,
+      planId: notification.planId,
+    );
   }
 
   /// Stream de notificaciones del usuario, ordenadas por fecha desc
