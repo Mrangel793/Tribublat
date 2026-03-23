@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/src/features/user/data/cloudinary_service.dart';
 
 /// Caché global en memoria para evitar decodificar la misma imagen repetidamente.
 /// Se limpia automáticamente cuando supera 50 entradas para no agotar RAM.
@@ -24,7 +26,9 @@ Uint8List? _getCachedBytes(String base64String) {
   }
 }
 
-/// Widget para mostrar imágenes guardadas como Base64 en Firestore
+/// Widget inteligente para imágenes:
+/// - Si es URL (Cloudinary/http) → CachedNetworkImage con CDN
+/// - Si es Base64 → decodifica con caché en memoria (legado)
 class Base64ImageWidget extends StatelessWidget {
   final String base64String;
   final double? width;
@@ -32,6 +36,8 @@ class Base64ImageWidget extends StatelessWidget {
   final BoxFit fit;
   final Widget? placeholder;
   final Widget? errorWidget;
+  /// Si true, aplica transformación de thumbnail de Cloudinary
+  final bool useThumbnail;
 
   const Base64ImageWidget({
     super.key,
@@ -41,41 +47,77 @@ class Base64ImageWidget extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.placeholder,
     this.errorWidget,
+    this.useThumbnail = true,
   });
+
+  bool get _isUrl =>
+      base64String.startsWith('http://') ||
+      base64String.startsWith('https://');
 
   @override
   Widget build(BuildContext context) {
-    final bytes = _getCachedBytes(base64String);
+    if (base64String.isEmpty) return _buildPlaceholder();
 
-    if (bytes == null) {
-      return errorWidget ??
-          Container(
-            width: width,
-            height: height,
-            color: Colors.grey[300],
-            child: const Icon(Icons.error_outline, color: Colors.grey),
-          );
+    // ── Imagen desde Cloudinary CDN ──
+    if (_isUrl) {
+      final url = useThumbnail && width != null && height != null
+          ? CloudinaryService.getThumbnailUrl(
+              base64String,
+              width: width!.toInt(),
+              height: height!.toInt(),
+            )
+          : base64String;
+
+      return CachedNetworkImage(
+        imageUrl: url,
+        width: width,
+        height: height,
+        fit: fit,
+        placeholder: (_, __) => _buildPlaceholder(),
+        errorWidget: (_, __, ___) => _buildError(),
+        fadeInDuration: const Duration(milliseconds: 200),
+        memCacheWidth: width?.toInt(),
+        memCacheHeight: height?.toInt(),
+      );
     }
+
+    // ── Imagen Base64 (legado) ──
+    final bytes = _getCachedBytes(base64String);
+    if (bytes == null) return _buildError();
 
     return Image.memory(
       bytes,
       width: width,
       height: height,
       fit: fit,
-      gaplessPlayback: true, // Evita parpadeo al reconstruir
-      errorBuilder: (_, __, ___) =>
-          errorWidget ??
-          Container(
-            width: width,
-            height: height,
-            color: Colors.grey[300],
-            child: const Icon(Icons.broken_image, color: Colors.grey),
-          ),
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => _buildError(),
     );
   }
+
+  Widget _buildPlaceholder() => placeholder ??
+      Container(
+        width: width,
+        height: height,
+        color: const Color(0xFF1A1A2E),
+        child: const Center(
+          child: Icon(Icons.image_outlined, color: Color(0xFF2A2A3E), size: 32),
+        ),
+      );
+
+  Widget _buildError() => errorWidget ??
+      Container(
+        width: width,
+        height: height,
+        color: const Color(0xFF1A1A2E),
+        child: const Center(
+          child: Icon(Icons.broken_image_outlined,
+              color: Color(0xFF2A2A3E), size: 32),
+        ),
+      );
 }
 
-/// Widget circular para avatares con imágenes Base64
+/// Avatar circular — soporta URL de Cloudinary y Base64 (legado)
 class Base64CircleAvatar extends StatelessWidget {
   final String base64String;
   final double radius;
@@ -88,29 +130,48 @@ class Base64CircleAvatar extends StatelessWidget {
     this.backgroundColor,
   });
 
+  bool get _isUrl =>
+      base64String.startsWith('http://') ||
+      base64String.startsWith('https://');
+
   @override
   Widget build(BuildContext context) {
-    try {
-      final Uint8List bytes = base64Decode(base64String);
+    final bg = backgroundColor ?? const Color(0xFF2A2A3E);
+    final size = (radius * 2).toInt();
 
+    if (base64String.isEmpty) {
       return CircleAvatar(
         radius: radius,
-        backgroundColor: backgroundColor ?? Colors.grey[300],
-        backgroundImage: MemoryImage(bytes),
-        onBackgroundImageError: (exception, stackTrace) {
-          // Error manejado por el child
-        },
-        child: null,
+        backgroundColor: bg,
+        child: Icon(Icons.person, size: radius, color: Colors.white),
       );
-    } catch (e) {
+    }
+
+    if (_isUrl) {
+      final avatarUrl = CloudinaryService.getAvatarUrl(
+        base64String,
+        size: size,
+      );
       return CircleAvatar(
         radius: radius,
-        backgroundColor: backgroundColor ?? Colors.grey[300],
-        child: Icon(
-          Icons.person,
-          size: radius,
-          color: Colors.white,
-        ),
+        backgroundColor: bg,
+        backgroundImage: CachedNetworkImageProvider(avatarUrl),
+      );
+    }
+
+    // Base64 legado
+    try {
+      final bytes = base64Decode(base64String);
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: bg,
+        backgroundImage: MemoryImage(bytes),
+      );
+    } catch (_) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: bg,
+        child: Icon(Icons.person, size: radius, color: Colors.white),
       );
     }
   }
