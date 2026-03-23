@@ -7,6 +7,7 @@ import 'package:myapp/src/features/auth/presentation/register/register_screen.da
 import 'package:myapp/src/features/main/main_screen.dart';
 import 'package:myapp/src/features/plans/presentation/create/screens/create_plan_screen.dart';
 import 'package:myapp/src/features/plans/presentation/detail/screens/plan_detail_screen.dart';
+import 'package:myapp/src/features/plans/presentation/edit/edit_plan_screen.dart';
 import 'package:myapp/src/features/profile/presentation/edit/edit_profile_screen.dart';
 import 'package:myapp/src/features/profile/presentation/public/public_profile_screen.dart';
 import 'package:myapp/src/features/profile/presentation/setup/screens/profile_setup_screen.dart';
@@ -59,6 +60,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final planId = state.pathParameters['id']!;
         return PlanDetailScreen(planId: planId);
+      },
+    ),
+    GoRoute(
+      path: '/edit-plan/:id',
+      builder: (context, state) {
+        final planId = state.pathParameters['id']!;
+        return EditPlanScreen(planId: planId);
       },
     ),
     GoRoute(

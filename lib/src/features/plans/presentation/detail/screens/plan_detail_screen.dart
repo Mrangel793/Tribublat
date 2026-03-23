@@ -945,23 +945,34 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
           GestureDetector(
             onTap: (_isJoining || isUserPending)
                 ? null
-                : () => isUserJoined
-                    ? _confirmLeave(plan)
-                    : _handleJoinLeave(plan, isUserJoined, isOrganizer),
+                : () {
+                    if (isOrganizer) {
+                      context.push('/edit-plan/${plan.id}');
+                    } else if (isUserJoined) {
+                      _confirmLeave(plan);
+                    } else {
+                      _handleJoinLeave(plan, isUserJoined, isOrganizer);
+                    }
+                  },
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                gradient: (isUserJoined || isOnWaitlist || isFull || isUserPending)
+                gradient: (isOrganizer || isUserJoined || isOnWaitlist ||
+                        isFull || isUserPending)
                     ? null
                     : DarkFeedColors.primaryGradient,
-                color: isUserJoined
-                    ? DarkFeedColors.errorRed
-                    : (isUserPending
-                        ? DarkFeedColors.gradientViolet
-                        : (isOnWaitlist
-                            ? const Color(0xFFFFB347)
-                            : (isFull ? DarkFeedColors.borderSubtle : null))),
+                color: isOrganizer
+                    ? DarkFeedColors.gradientViolet
+                    : (isUserJoined
+                        ? DarkFeedColors.errorRed
+                        : (isUserPending
+                            ? DarkFeedColors.gradientViolet
+                            : (isOnWaitlist
+                                ? const Color(0xFFFFB347)
+                                : (isFull
+                                    ? DarkFeedColors.borderSubtle
+                                    : null)))),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: (!isUserJoined && !isFull)
                     ? [
