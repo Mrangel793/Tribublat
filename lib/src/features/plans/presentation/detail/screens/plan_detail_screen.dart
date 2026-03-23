@@ -12,6 +12,7 @@ import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/src/common/widgets/base64_image_widget.dart';
+import 'package:myapp/src/features/user/data/user_repository.dart';
 import 'package:myapp/src/features/reviews/data/review_repository.dart';
 import 'package:myapp/src/features/reviews/domain/review_model.dart';
 import 'package:myapp/src/features/reviews/presentation/review_form_sheet.dart';
@@ -1295,6 +1296,13 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
   }
 
   Widget _buildSolicitudItem(PlanModel plan, String userId) {
+    // Cargar perfil real del solicitante
+    final userAsync = ref.watch(
+      StreamProvider((ref) =>
+          ref.read(userRepositoryProvider).userProfileStream(userId)),
+    );
+    final solicitante = userAsync.valueOrNull;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -1306,21 +1314,40 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor:
-                DarkFeedColors.gradientViolet.withValues(alpha: 0.3),
-            child: const Icon(Icons.person,
-                color: Colors.white, size: 20),
+          // Foto del solicitante
+          GestureDetector(
+            onTap: () => context.push('/profile/$userId'),
+            child: Base64CircleAvatar(
+              base64String: solicitante?.foto ?? '',
+              radius: 20,
+              backgroundColor:
+                  DarkFeedColors.gradientViolet.withValues(alpha: 0.3),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Usuario solicitante',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: DarkFeedColors.textPrimary,
+            child: GestureDetector(
+              onTap: () => context.push('/profile/$userId'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    solicitante?.nombre ?? 'Cargando...',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: DarkFeedColors.textPrimary,
+                    ),
+                  ),
+                  if (solicitante != null)
+                    Text(
+                      '${solicitante.edad} años · ${solicitante.ciudad}',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: DarkFeedColors.textSecondary,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

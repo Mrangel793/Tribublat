@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:myapp/src/common/theme/dark_feed_colors.dart';
@@ -123,10 +124,16 @@ class AlertsScreen extends ConsumerWidget {
                           final notif = notifications[index];
                           return GestureDetector(
                             onTap: () {
+                              // Marcar como leída
                               if (!notif.leida) {
                                 ref
                                     .read(notificationRepositoryProvider)
                                     .markAsRead(user.uid, notif.id);
+                              }
+                              // Navegar al plan si la notificación tiene planId
+                              if (notif.planId != null &&
+                                  notif.planId!.isNotEmpty) {
+                                context.push('/plan/${notif.planId}');
                               }
                             },
                             child: _buildNotificationItem(notif),
