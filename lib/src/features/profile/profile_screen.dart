@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:myapp/src/common/widgets/base64_image_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -141,7 +142,7 @@ class ProfileScreen extends ConsumerWidget {
                         radius: 57,
                         backgroundColor: DarkFeedColors.cardBackground,
                         backgroundImage: user?.foto.isNotEmpty == true
-                            ? MemoryImage(base64Decode(user!.foto))
+                            ? smartImageProvider(user!.foto)
                             : null,
                         child: user?.foto.isNotEmpty != true
                             ? const Icon(Icons.person,
@@ -500,12 +501,12 @@ class ProfileScreen extends ConsumerWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(isMain ? 12 : 14),
-            child: Image.memory(
-              base64Decode(base64Photo),
+            child: Base64ImageWidget(
+              base64String: base64Photo,
               width: 100,
               height: 100,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorWidget: Container(
                 color: DarkFeedColors.surface,
                 child: const Icon(Icons.broken_image,
                     color: DarkFeedColors.textSecondary),

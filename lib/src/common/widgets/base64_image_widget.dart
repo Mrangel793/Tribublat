@@ -4,6 +4,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/src/features/user/data/cloudinary_service.dart';
 
+/// Retorna un ImageProvider que soporta URL (Cloudinary/http) y Base64.
+/// Útil donde se necesita un ImageProvider en lugar de un Widget.
+ImageProvider smartImageProvider(String source) {
+  if (source.isEmpty) return const AssetImage('assets/images/placeholder.png');
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    return CachedNetworkImageProvider(source);
+  }
+  try {
+    final bytes = _getCachedBytes(source);
+    if (bytes != null) return MemoryImage(bytes);
+  } catch (_) {}
+  return const AssetImage('assets/images/placeholder.png');
+}
+
 /// Caché global en memoria para evitar decodificar la misma imagen repetidamente.
 /// Se limpia automáticamente cuando supera 50 entradas para no agotar RAM.
 final _imageCache = <String, Uint8List>{};

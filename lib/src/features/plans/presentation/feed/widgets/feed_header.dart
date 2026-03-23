@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:myapp/src/common/theme/dark_feed_colors.dart';
+import 'package:myapp/src/common/widgets/base64_image_widget.dart';
 
 /// Header del feed con saludo, búsqueda y filtros (dark mode)
 class FeedHeader extends StatelessWidget {
@@ -160,12 +159,7 @@ class FeedHeader extends StatelessWidget {
   Widget _buildAvatar() {
     ImageProvider? avatarImage;
     if (userPhotoBase64 != null && userPhotoBase64!.isNotEmpty) {
-      try {
-        final bytes = base64Decode(userPhotoBase64!);
-        avatarImage = MemoryImage(bytes);
-      } catch (_) {
-        avatarImage = null;
-      }
+      avatarImage = smartImageProvider(userPhotoBase64!);
     }
 
     return GestureDetector(

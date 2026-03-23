@@ -11,6 +11,7 @@ import 'package:myapp/src/features/plans/data/plan_repository.dart'
 import 'package:myapp/src/features/plans/domain/models/plan_model.dart';
 import 'package:myapp/src/features/plans/domain/plan_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/src/common/widgets/base64_image_widget.dart';
 import 'package:myapp/src/features/reviews/data/review_repository.dart';
 import 'package:myapp/src/features/reviews/domain/review_model.dart';
 import 'package:myapp/src/features/reviews/presentation/review_form_sheet.dart';
@@ -197,23 +198,26 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Imagen
-            plan.imagenBase64.isNotEmpty
-                ? Image.memory(
-                    base64Decode(plan.imagenBase64),
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    color: DarkFeedColors.cardBackground,
-                    child: Center(
-                      child: Icon(
-                        categoryInfo?.icon ?? Icons.event,
-                        size: 80,
-                        color: (categoryInfo?.color ?? DarkFeedColors.gradientViolet)
-                            .withOpacity(0.3),
-                      ),
-                    ),
+            // Imagen (soporta Cloudinary URL y Base64)
+            if (plan.imagenBase64.isNotEmpty)
+              Base64ImageWidget(
+                base64String: plan.imagenBase64,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                useThumbnail: false, // Imagen completa en detalle
+              )
+            else
+              Container(
+                color: DarkFeedColors.cardBackground,
+                child: Center(
+                  child: Icon(
+                    categoryInfo?.icon ?? Icons.event,
+                    size: 80,
+                    color: (categoryInfo?.color ?? DarkFeedColors.gradientViolet)
+                        .withValues(alpha: 0.3),
                   ),
+                ),
+              ),
             // Gradient overlay
             Container(
               decoration: BoxDecoration(
@@ -546,19 +550,10 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                 gradient: DarkFeedColors.primaryGradient,
               ),
               padding: const EdgeInsets.all(2),
-              child: ClipOval(
-                child: plan.organizadorFoto.isNotEmpty
-                    ? (plan.organizadorFoto.startsWith('http')
-                        ? Image.network(plan.organizadorFoto,
-                            fit: BoxFit.cover)
-                        : Image.memory(
-                            base64Decode(plan.organizadorFoto),
-                            fit: BoxFit.cover))
-                    : Container(
-                        color: DarkFeedColors.surface,
-                        child: const Icon(Icons.person,
-                            color: DarkFeedColors.textSecondary),
-                      ),
+              child: Base64CircleAvatar(
+                base64String: plan.organizadorFoto,
+                radius: 22,
+                backgroundColor: DarkFeedColors.surface,
               ),
             ),
             const SizedBox(width: 12),
